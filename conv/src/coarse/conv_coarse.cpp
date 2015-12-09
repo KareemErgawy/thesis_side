@@ -1,0 +1,100 @@
+#include <coarse/conv_coarse.h>
+
+void Coarse_ApplyStencil(real32* in_img, uint32 img_width,
+                         uint32 img_height, real32* msk,
+                         uint32 msk_width, uint32 msk_height,
+                         real32* out_img)
+{
+    _in_img = in_img;
+    _img_width = img_width;
+    _img_height = img_height;
+    _msk = msk;
+    _msk_width = msk_width;
+    _msk_height = msk_height;
+    _out_img = out_img;
+    _half_w = msk_width / 2;
+    _half_h = msk_height / 2;
+
+    uint32 img_size = _img_width * _img_height;
+    uint32 inner_width = (_img_width - (_half_w*2));
+    uint32 inner_height = (_img_height - (_half_h*2));
+    uint32 inner_size = inner_width * inner_height;
+    
+    try
+    {
+        kernel_file_name = "conv_kernel.cl";
+        kernel_name = "conv_kernel";
+        SetupOpenCL();
+
+        cl_int status;
+    
+        cl::Buffer in_img_buf = cl::Buffer(context, CL_MEM_READ_ONLY,
+                                           img_size, NULL, &status);
+        cl::Buffer msk_buf = cl::Buffer(context, CL_MEM_READ_ONLY,
+                                        msk_width*msk_height, NULL,
+                                        &status);
+        cl::Buffer out_img_buf = cl::Buffer(context,
+                                            CL_MEM_WRITE_ONLY,
+                                            img_size, NULL,
+                                            &status);
+
+        queue.enqueueWriteBuffer(in_img_buf, CL_FALSE, 0,
+                                 img_width*img_height, in_img);
+        queue.enqueueWriteBuffer(msk_buf, CL_FALSE, 0,
+                                 msk_width*msk_height, msk);
+
+        cl::Kernel kernel(program, kernel_name.c_str());
+        kernel.setArg(0, in_img_buf);
+        kernel.setArg(1, img_width);
+        kernel.setArg(2, img_height);
+        kernel.setArg(3, msk_buf);
+        kernel.setArg(4, msk_width);
+        kernel.setArg(5, msk_height);
+        kernel.setArg(6, out_img_buf);
+
+        cl::NDRange global(inner_width, inner_height);
+        cl::NDRange local(1, 1);
+
+        queue.enqueueNDRangeKernel(kernel, cl::NullRange, global,
+                                   local);
+
+        queue.enqueueReadBuffer(out_img_buf, CL_TRUE, 0,
+                                img_width*img_height, out_img);
+    }
+    catch(cl::Error error)
+    {
+        std::cout << error.what() << "(" << error.err() << ")"
+                  << std::endl;
+    }
+    
+    HandleAllBoundries();
+}
+
+internal
+void SetupOpenCL()
+{
+    try
+    {
+        cl::Platform::get(&platforms);
+        platforms[0].getDevices(CL_DEVICE_TYPE_GPU, &devices);
+        context = cl::Context(devices);        
+        queue = cl::CommandQueue(context, devices[0]);
+
+        std::ifstream sourceFile(kernel_file_name.c_str());
+        std::string sourceCode(std::istreambuf_iterator<char>(
+                                   sourceFile),
+                               (std::istreambuf_iterator<char>()));
+
+        cl::Program::Sources source(1, std::make_pair(
+                                        sourceCode.c_str(),
+                                        sourceCode.length() + 1));
+
+        program = cl::Program(context, source);
+        program.build(devices);
+    }
+    catch(cl::Error error)
+    {
+        std::cout << error.what() << "(" << error.err() << ")"
+                  << std::endl;
+    }
+}
