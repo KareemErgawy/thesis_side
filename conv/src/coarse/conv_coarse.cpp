@@ -5,8 +5,8 @@ void Coarse_ApplyStencil(real32* in_img, uint32 img_width,
                          uint32 msk_width, uint32 msk_height,
                          real32* out_img)
 {
-    std::cout << "Coarse (non-SVM) Convolution:" << std::endl;
-    Print2DArray("Input Image: ", in_img, img_width, img_height);
+    std::cout << "Coarse (non-SVM) Convolution START!" << std::endl;
+    //Print2DArray("Input Image: ", in_img, img_width, img_height);
     _in_img = in_img;
     _img_width = img_width;
     _img_height = img_height;
@@ -70,7 +70,8 @@ void Coarse_ApplyStencil(real32* in_img, uint32 img_width,
 
     HandleAllBoundries();
 
-    Print2DArray("Output Image: ", out_img, img_width, img_height);
+    //Print2DArray("Output Image: ", out_img, img_width, img_height);
+    std::cout << "Coarse (non-SVM) Convolution FINISH!" << std::endl;
     std::cout << "======================" << std::endl;
 }
 
