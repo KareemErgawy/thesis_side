@@ -10,16 +10,18 @@ __kernel void conv_kernel(__global float* in_img, int img_width,
     int col = get_global_id(0) + half_w;
     int row = get_global_id(1) + half_h;
 
-    out_img[(row*img_width)+col] = 11;
-    /*
+    out_img[(row*img_width)+col] = 0;
+    
     for(int c = -half_w ; c <= half_w ; c++)
     {
         for(int r = -half_h ; r <= half_h ; r++)
         {
-            //out_img[(row*img_width)+col]
-            //    += (in_img[((row+r)*img_width)+col+c]
-            //       *msk[((half_h+r)*msk_width)+half_w+c]);
+            out_img[(row*img_width)+col]
+                += (in_img[((row+r)*img_width)+col+c]
+                   *msk[((half_h+r)*msk_width)+half_w+c]);
         }
     }
-    */
+
+//    printf("%d %f\n", ((row*img_width)+col),
+//           out_img[(row*img_width)+col]);
 }
