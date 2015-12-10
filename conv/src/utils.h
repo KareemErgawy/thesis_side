@@ -12,6 +12,14 @@ typedef float real32;
 
 #define ArrayCount(Array) (sizeof(Array) / sizeof((Array)[0]))
 
+global_variable std::vector<cl::Platform> platforms;
+global_variable std::vector<cl::Device>   devices;
+global_variable cl::Context               context;
+global_variable cl::CommandQueue          queue;
+global_variable cl::Program               program;
+global_variable std::string               kernel_file_name;
+global_variable std::string               kernel_name;
+
 void Print2DArray(std::string message, real32* array, uint32 width,
                   uint32 height);
 
@@ -25,4 +33,6 @@ void GenerateGaussianBlurFilter_5X5(real32* msk);
 
 bool CompareImages(real32* img1, real32* img2, uint32 img_width,
                    uint32 img_height);
+
+void SetupOpenCL();
 #endif

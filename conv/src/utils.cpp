@@ -110,3 +110,31 @@ bool CompareImages(real32* img1, real32* img2, uint32 width,
 
     return true;
 }
+
+void SetupOpenCL()
+{
+    try
+    {
+        cl::Platform::get(&platforms);
+        platforms[0].getDevices(CL_DEVICE_TYPE_GPU, &devices);
+        context = cl::Context(devices);        
+        queue = cl::CommandQueue(context, devices[0]);
+
+        std::ifstream sourceFile(kernel_file_name.c_str());
+        std::string sourceCode(std::istreambuf_iterator<char>(
+                                   sourceFile),
+                               (std::istreambuf_iterator<char>()));
+
+        cl::Program::Sources source(1, std::make_pair(
+                                        sourceCode.c_str(),
+                                        sourceCode.length() + 1));
+
+        program = cl::Program(context, source);
+        program.build(devices);
+    }
+    catch(cl::Error error)
+    {
+        std::cout << error.what() << "(" << error.err() << ")"
+                  << std::endl;
+    }
+}

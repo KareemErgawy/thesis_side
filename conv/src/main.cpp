@@ -4,25 +4,42 @@
 #include <string>
 #include <iomanip>
 
+#define __CL_ENABLE_EXCEPTIONS
+#include <CL/cl.hpp>
+
 #include <Utils/bmp-utils.c>
 #include <utils.cpp>
 #include <seq/conv_seq.cpp>
 #include <coarse/conv_coarse.cpp>
+#include <coarse/conv_coarse_svm.cpp>
 
 static const char* inputImagePath = "../Images/cat.bmp";
 
 int main()
 {
-    int32 img_width;
-    int32 img_height;
-    real32* in_img = readBmpFloat(inputImagePath, &img_height,
-                                  &img_width);
-    
+    //
+    // Cat input case
+    //
+//    int32 img_width;
+//    int32 img_height;
+//    real32* in_img = readBmpFloat(inputImagePath, &img_height,
+//                                  &img_width);
+
+    //
+    // Test matrix case
+    //
+    int32 img_width = 7;
+    int32 img_height = 7;
+    real32* in_img = (real32*)malloc(sizeof(real32)*img_width
+                                     *img_height);
+    GenerateTestImage(in_img, img_width, img_height);
+
     uint32 msk_width = 5;
     uint32 msk_height = 5;
     real32* msk = (real32*)malloc(
         sizeof(real32)*msk_width*msk_height);
-    GenerateGaussianBlurFilter_5X5(msk);
+//    GenerateGaussianBlurFilter_5X5(msk);
+    GenerateTestMask(msk, msk_width, msk_height);
 
     //
     // Sequential implementation test
@@ -53,11 +70,21 @@ int main()
     {
         std::cout << "TEST FAILED [Coarse (non-SVM)]!" << std::endl;
     }
+
+
+    //
+    // Coarse SVM test
+    //
+    real32* out_img_coarse_svm = (real32*)malloc(
+        sizeof(real32)*img_width*img_height);
+    CoarseSVM_ApplyStencil(in_img, img_width, img_height, msk,
+                        msk_width, msk_height, out_img_coarse_svm);
     
     free(in_img);
     free(msk);
     free(out_img_seq);
     free(out_img_coarse);
-
+    free(out_img_coarse_svm);
+    
     return 0;
 }
