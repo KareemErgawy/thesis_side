@@ -5,173 +5,83 @@
 
 // TODO: Unify the API usage to C or C++
 // TODO: Proper error handling and reporting
-global_variable void* svmInput;
+global_variable void* svm_input;
 
-void CoarseSVM_ApplyStencil(real32* in_img, uint32 img_width,
+int CoarseSVM_ApplyStencil(real32* in_img, uint32 img_width,
                          uint32 img_height, real32* msk,
                          uint32 msk_width, uint32 msk_height,
                          real32* out_img)
 {
-    /*
-    kernel_file_name = "test_svm_kernel.cl";
-    kernel_name = "test_svm_kernel";
-    SetupOpenCL();
-
-    cl_device_svm_capabilities caps;
-    cl_int err = clGetDeviceInfo(devices[0](),
-                                 CL_DEVICE_SVM_CAPABILITIES,
-                                 sizeof(cl_device_svm_capabilities),
-                                 &caps, 0);
-
-    if(err == CL_SUCCESS)
-    {
-        std::cout << "SVM capabilities found:" << std::endl;
-        std::cout << "CL_DEVICE_SVM_COARSE_GRAIN_BUFFER: "
-                  << ((caps & CL_DEVICE_SVM_COARSE_GRAIN_BUFFER) != 0)
-                  << std::endl;
-
-        std::cout << "CL_DEVICE_SVM_FINE_GRAIN_BUFFER: "
-                  << ((caps & CL_DEVICE_SVM_FINE_GRAIN_BUFFER) != 0)
-                  << std::endl;
-
-        std::cout << "CL_DEVICE_SVM_FINE_GRAIN_SYSTEM: "
-                  << ((caps & CL_DEVICE_SVM_FINE_GRAIN_SYSTEM) != 0)
-                  << std::endl;
-        
-        std::cout << "CL_DEVICE_SVM_ATOMICS: "
-                  << ((caps & CL_DEVICE_SVM_ATOMICS) != 0)
-                  << std::endl;
-    }
-    else
-    {
-        std::cout << "SVM capabilities NOT found" << std::endl;
-        return;
-    }
-
-    std::cout << "Context: " << context() << std::endl;
-    
-    svmInput = clSVMAlloc(context(), CL_MEM_READ_WRITE,
-                                10*sizeof(int), 0);
-    cl_int status;
-
-    if(svmInput != NULL)
-    {
-        std::cout << "Allocated SVM memory" << std::endl;
-    }
-    else
-    {
-        std::cout << "Couldn't allocate SVM memory" << std::endl;
-        return;
-    }
-    
-    status = clEnqueueSVMMap(queue(), CL_TRUE,
-                             CL_MAP_WRITE_INVALIDATE_REGION,
-                             svmInput, 10*sizeof(int), 0,
-                             NULL, NULL);
-
-    if(status == CL_SUCCESS)
-    {
-        std::cout << "clEnqueueSVMMap SUCCESS" << std::endl;
-    }
-    else
-    {
-        std::cout << "clEnqueueSVMMap FAILED" << std::endl;
-        return;
-    }
-
-    for(int i=0 ; i<10 ; i++)
-    {
-        ((int*)(svmInput))[i] = i;
-    }
-    
-    status = clEnqueueSVMUnmap(queue(), svmInput, 0, NULL, NULL);
-
-    if(status == CL_SUCCESS)
-    {
-        std::cout << "clEnqueueSVMUnmap SUCCESS" << std::endl;
-    }
-    else
-    {
-        std::cout << "clEnqueueSVMUnmap FAILED" << std::endl;
-        return;
-    }
-    
-    cl::Kernel kernel(program, kernel_name.c_str());
-    status = clSetKernelArgSVMPointer(kernel(), 0, (void*)(svmInput));
-
-    cl_context kc;
-    kernel.getInfo(CL_KERNEL_CONTEXT, &kc);    
-    std::cout << "Kernel context: " << kc << std::endl;
-    
-    cl_context qc;
-    queue.getInfo(CL_QUEUE_CONTEXT, &qc);
-    std::cout << "Queue context: " << qc << std::endl;
-    
-    if(status == CL_SUCCESS)
-    {
-        std::cout << "clSetKernelArgSVMPointer SUCCESS" << std::endl;
-    }
-    else
-    {
-        std::cout << "clSetKernelArgSVMPointer FAILED" << std::endl;
-        return;
-    }
-
-    size_t globalThreads = 10;
-    size_t localThreads = 1;
-    cl_event ndrEvent;
-    status = clEnqueueNDRangeKernel(queue(), kernel(), 1, NULL,
-                                    &globalThreads, &localThreads,
-                                    0, NULL, &ndrEvent);
-    
-    if(status == CL_SUCCESS)
-    {
-        std::cout << "clEnqueueNDRangeKernel SUCCESS" << std::endl;
-    }
-    else
-    {
-        std::cout << "clEnqueueNDRangeKernel FAILED" << std::endl;
-        return;
-    }
-
-    for(int i=0 ; i<10 ; i++)
-    {
-        std::cout << "Test " << i << std::endl;
-    }
-/*
-    status = clFlush(queue());
-
-    if(status == CL_SUCCESS)
-    {
-        std::cout << "clFlush SUCCESS" << std::endl;
-    }
-    else
-    {
-        std::cout << "clFlush FAILED" << std::endl;
-        return;
-    }
-
-    status = waitForEventAndRelease(&ndrEvent);
-
-    if(status == CL_SUCCESS)
-    {
-        std::cout << "waitForEventAndRelease SUCCESS" << std::endl;
-    }
-    else
-    {
-        std::cout << "waitForEventAndRelease FAILED" << std::endl;
-        return;
-    }
-*/  
-    /*
     std::cout << "Coarse (SVM) Convolution START!" << std::endl;
+    int status;
+    cl_int cl_status;
+    int num_elements = 10;
+    
+    status = SetupKernel("test_svm_kernel.cl", "test_svm_kernel");
+    CHECK_ERROR(status, "SetupKernel");
+    
+    svm_input = clSVMAlloc(context, CL_MEM_READ_WRITE, num_elements*sizeof(int),
+                          0);
+    CHECK_ALLOCATION(svm_input, "svm_input");
 
-    _img_width = img_width;
-    _img_height = img_height;
-    _msk_width = msk_width;
-    _msk_height = msk_height;
-    _half_w = msk_width / 2;
-    _half_h = msk_height / 2;
+
+    cl_status = clEnqueueSVMMap(queue, CL_TRUE,
+                                CL_MAP_WRITE_INVALIDATE_REGION,
+                                svm_input, num_elements*sizeof(int), 0, NULL,
+                                NULL);
+    CHECK_OPENCL_ERROR(cl_status, "clEnqueueSVMMap");
+
+    for(int i=0 ; i<num_elements ; i++)
+    {
+        ((int*)svm_input)[i] = i;
+    }
+
+    
+    for(int i=0 ; i<num_elements ; i++)
+    {
+        std::cout << i << ", " << ((int*)svm_input)[i] << std::endl;
+    }
+    
+    cl_status = clEnqueueSVMUnmap(queue, svm_input, 0, NULL, NULL);
+    CHECK_OPENCL_ERROR(cl_status, "clEnqueueSVMUnmap");
+
+    cl_status = clGetKernelWorkGroupInfo(
+        kernel, device, CL_KERNEL_WORK_GROUP_SIZE, sizeof(size_t),
+        &kernel_wrkgrp_size, NULL);
+    CHECK_OPENCL_ERROR(cl_status, "clGetKernelWorkGroupInfo");
+    
+    cl_status = clGetKernelWorkGroupInfo(
+        kernel, device, CL_KERNEL_LOCAL_MEM_SIZE, sizeof(cl_ulong),
+        &compile_wrkgrp_size, NULL);
+    CHECK_OPENCL_ERROR(cl_status, "clGetKernelWorkGroupInfo");
+    
+    cl_status = clGetKernelWorkGroupInfo(
+        kernel, device, CL_KERNEL_COMPILE_WORK_GROUP_SIZE,
+        sizeof(size_t)*3, &compile_wrkgrp_size, NULL);
+    CHECK_OPENCL_ERROR(cl_status, "clGetKernelWorkGroupInfo");
+
+    size_t local_threads = 1;//kernel_wrkgrp_size;
+    size_t globl_threads = num_elements;
+
+    cl_status = clSetKernelArgSVMPointer(kernel, 0, (void*)(svm_input));
+    CHECK_OPENCL_ERROR(cl_status, "clSetKernelArgSVMPointer");
+
+    cl_event ndr_event;
+    cl_status = clEnqueueNDRangeKernel(queue, kernel, 1, NULL,
+                                       &globl_threads, NULL,
+                                       0, NULL, &ndr_event);
+    CHECK_OPENCL_ERROR(cl_status, "clEnqueueNDRangeKernel");
+
+    cl_status = clFlush(queue);
+    CHECK_OPENCL_ERROR(cl_status, "clFlush");
+        
+    /*
+      _img_width = img_width;
+      _img_height = img_height;
+      _msk_width = msk_width;
+      _msk_height = msk_height;
+      _half_w = msk_width / 2;
+      _half_h = msk_height / 2;
 
     _img_size = img_width * img_height;
     _inner_width = (img_width - (_half_w*2));
@@ -204,10 +114,11 @@ void CoarseSVM_ApplyStencil(real32* in_img, uint32 img_width,
         std::cout << error.what() << "(" << error.err() << ")"
                   << std::endl;
     }
+    */
     
     std::cout << "Coarse (SVM) Convolution FINISH!" << std::endl;
     std::cout << "======================" << std::endl;
-    */
+    return SUCCESS;
 }
 
 cl_int AllocateSVMObjects()

@@ -17,6 +17,20 @@ typedef float real32;
 #define CL_CALL_FAILURE    2
 #define ALLOCATION_FAILURE 3
 
+#define CHECK_ERROR(status, funcName)                               \
+    if(status != SUCCESS)                                           \
+    {                                                               \
+        std::cout << "Error " << status << " calling " << funcName  \
+                  << std::endl;                                     \
+        std::cout << "Location : " << __FILE__ << ":" << __LINE__   \
+                  << std::endl;                                     \
+        return CL_CALL_FAILURE;                                     \
+    }                                                               \
+    else                                                            \
+    {                                                               \
+        /*std::cout << msg << " Fine" << std::endl;*/               \
+    }
+
 #define CHECK_OPENCL_ERROR(status, funcName)                        \
     if(status != CL_SUCCESS)                                        \
     {                                                               \

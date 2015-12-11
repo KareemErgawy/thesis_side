@@ -18,8 +18,9 @@ static const char* inputImagePath = "../Images/cat.bmp";
 
 int main()
 {
-    SetupOpenCL();
-    SetupKernel("test_svm_kernel.cl", "test_svm_kernel");
+    int status;
+    status = SetupOpenCL();
+    CHECK_ERROR(status, "SetupOpenCL");
     //
     // Cat input case
     //
