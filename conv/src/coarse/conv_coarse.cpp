@@ -5,6 +5,7 @@ void Coarse_ApplyStencil(real32* in_img, uint32 img_width,
                          uint32 msk_width, uint32 msk_height,
                          real32* out_img)
 {
+    /*
     std::cout << "Coarse (non-SVM) Convolution START!" << std::endl;
     //Print2DArray("Input Image: ", in_img, img_width, img_height);
     _in_img = in_img;
@@ -54,10 +55,16 @@ void Coarse_ApplyStencil(real32* in_img, uint32 img_width,
         kernel.setArg(6, out_img_buf);
 
         // TODO play with local range to understand its effect
+        
+        // TODO use offset fields instead of calculating that in the
+        // kernel
         cl::NDRange global(inner_width, inner_height);
 
-        queue.enqueueNDRangeKernel(kernel, cl::NullRange, global);
-
+        cl::Event event;
+        queue.enqueueNDRangeKernel(kernel, cl::NullRange,
+                                   global, cl::NullRange,
+                                   NULL, &event);
+        
         queue.enqueueReadBuffer(out_img_buf, CL_TRUE, 0,
                                 img_size*sizeof(real32), out_img);
                                
@@ -68,9 +75,11 @@ void Coarse_ApplyStencil(real32* in_img, uint32 img_width,
                   << std::endl;
     }
 
+    // TODO: try to use clEnqueueNativeKernel here
     HandleAllBoundries();
 
     //Print2DArray("Output Image: ", out_img, img_width, img_height);
     std::cout << "Coarse (non-SVM) Convolution FINISH!" << std::endl;
     std::cout << "======================" << std::endl;
+    */
 }

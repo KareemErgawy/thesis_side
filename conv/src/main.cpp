@@ -1,11 +1,12 @@
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
+#include <cstring>
 #include <string>
 #include <iomanip>
 
 #define __CL_ENABLE_EXCEPTIONS
-#include <CL/cl.hpp>
+#include <CL/cl.h>
 
 #include <Utils/bmp-utils.c>
 #include <utils.cpp>
@@ -17,6 +18,8 @@ static const char* inputImagePath = "../Images/cat.bmp";
 
 int main()
 {
+    SetupOpenCL();
+    SetupKernel("test_svm_kernel.cl", "test_svm_kernel");
     //
     // Cat input case
     //
@@ -78,7 +81,7 @@ int main()
     real32* out_img_coarse_svm = (real32*)malloc(
         sizeof(real32)*img_width*img_height);
     CoarseSVM_ApplyStencil(in_img, img_width, img_height, msk,
-                        msk_width, msk_height, out_img_coarse_svm);
+                           msk_width, msk_height, out_img_coarse_svm);
     
     free(in_img);
     free(msk);

@@ -12,13 +12,43 @@ typedef float real32;
 
 #define ArrayCount(Array) (sizeof(Array) / sizeof((Array)[0]))
 
-global_variable std::vector<cl::Platform> platforms;
-global_variable std::vector<cl::Device>   devices;
-global_variable cl::Context               context;
-global_variable cl::CommandQueue          queue;
-global_variable cl::Program               program;
-global_variable std::string               kernel_file_name;
-global_variable std::string               kernel_name;
+#define SUCCESS            0
+#define GENERAL_FAILURE    1
+#define CL_CALL_FAILURE    2
+#define ALLOCATION_FAILURE 3
+
+#define CHECK_OPENCL_ERROR(status, funcName)                        \
+    if(status != CL_SUCCESS)                                        \
+    {                                                               \
+        std::cout << "Error " << status << " calling " << funcName  \
+                  << std::endl;                                     \
+        std::cout << "Location : " << __FILE__ << ":" << __LINE__   \
+                  << std::endl;                                     \
+        return CL_CALL_FAILURE;                                                   \
+    }                                                               \
+    else                                                            \
+    {                                                               \
+        /*std::cout << msg << " Fine" << std::endl;*/               \
+    }
+
+#define CHECK_ALLOCATION(ptr, ptrName)                              \
+    if(ptr == NULL)                                                 \
+    {                                                               \
+        std::cout << "Failed to allocate memory for " << ptrName    \
+                  << std::endl;                                     \
+        std::cout << "Location : " << __FILE__ << ":" << __LINE__   \
+                  << std::endl;                                     \
+        return ALLOCATION_FAILURE;                                                   \
+    }
+
+global_variable cl_platform_id   platform;
+global_variable cl_device_id*    devices;
+global_variable cl_device_id     device;
+global_variable cl_context       context;
+global_variable cl_command_queue queue;
+
+global_variable cl_program       program;
+global_variable cl_kernel        kernel;
 
 void Print2DArray(std::string message, real32* array, uint32 width,
                   uint32 height);
@@ -34,5 +64,14 @@ void GenerateGaussianBlurFilter_5X5(real32* msk);
 bool CompareImages(real32* img1, real32* img2, uint32 img_width,
                    uint32 img_height);
 
-void SetupOpenCL();
+//
+// OpenCL util functions
+//
+int SetupOpenCL();
+
+int SetupKernel(std::string kernel_file_name,
+                std::string kernel_name);
+
+int DisplayDeviceSVMCaps(cl_device_id device);
+
 #endif

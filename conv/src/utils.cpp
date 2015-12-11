@@ -111,30 +111,109 @@ bool CompareImages(real32* img1, real32* img2, uint32 width,
     return true;
 }
 
-void SetupOpenCL()
+// TODO: get the program init out of here and setup so that you have
+// the most capable device
+int SetupOpenCL()
 {
-    try
+    cl_int status;
+    status = clGetPlatformIDs(1, &platform, NULL);
+    CHECK_OPENCL_ERROR(status, "clGetPlatformIDs");
+
+    cl_context_properties cps[3] =
+        {
+            CL_CONTEXT_PLATFORM,
+            (cl_context_properties)platform,
+            0
+        };
+
+    context = clCreateContextFromType(cps, CL_DEVICE_TYPE_GPU, NULL,
+                                      NULL, &status);
+    CHECK_OPENCL_ERROR(status, "clCreateContextFromType");
+    
+    size_t devicesSize = 0;
+    status = clGetContextInfo(context, CL_CONTEXT_DEVICES, 0, NULL,
+                              &devicesSize);
+    CHECK_OPENCL_ERROR(status, "clGetContextInfo");
+
+    int deviceCount = (int)(devicesSize / sizeof(cl_device_id));
+
+    devices = (cl_device_id*)malloc(devicesSize);
+    CHECK_ALLOCATION(devices, "devices");
+
+    status = clGetContextInfo(context, CL_CONTEXT_DEVICES,
+                              devicesSize, devices, NULL);
+    CHECK_OPENCL_ERROR(status, "clGetContextInfo");
+
+    device = devices[0];
+
+    DisplayDeviceSVMCaps(device);
+
+    cl_queue_properties prop[] = {0};
+    queue = clCreateCommandQueueWithProperties(context, device, prop,
+                                               &status);
+    CHECK_OPENCL_ERROR(status, "clCreateCommandQueueWithProperties");
+    
+    return SUCCESS;
+}
+
+int SetupKernel(std::string kernel_file_name, std::string kernel_name)
+{
+    cl_int status;
+    std::ifstream source_file(kernel_file_name.c_str());
+    std::string source_code(std::istreambuf_iterator<char>(
+                               source_file),
+                           (std::istreambuf_iterator<char>()));
+
+    const char* source = source_code.c_str();
+    size_t source_size[] = {strlen(source)};
+    
+    program = clCreateProgramWithSource(context, 1, &source,
+                                        source_size, &status);
+    CHECK_OPENCL_ERROR(status, "clCreateProgramWithSource");
+
+    std::string flags_str = "-I ./ -cl-std=CL2.0";
+
+    status = clBuildProgram(program, 1, &device, flags_str.c_str(),
+                            NULL, NULL);
+    CHECK_OPENCL_ERROR(status, "clBuildProgram");
+
+    kernel = clCreateKernel(program, kernel_name.c_str(), &status);
+    CHECK_OPENCL_ERROR(status, "clCreateKernel");
+    
+    return SUCCESS;
+}
+    
+int DisplayDeviceSVMCaps(cl_device_id device)
+{
+    cl_int status;
+    cl_device_svm_capabilities caps;
+    status = clGetDeviceInfo(device, CL_DEVICE_SVM_CAPABILITIES,
+                             sizeof(cl_device_svm_capabilities),
+                             &caps, 0);
+
+    if(status != CL_SUCCESS)
     {
-        cl::Platform::get(&platforms);
-        platforms[0].getDevices(CL_DEVICE_TYPE_GPU, &devices);
-        context = cl::Context(devices);        
-        queue = cl::CommandQueue(context, devices[0]);
-
-        std::ifstream sourceFile(kernel_file_name.c_str());
-        std::string sourceCode(std::istreambuf_iterator<char>(
-                                   sourceFile),
-                               (std::istreambuf_iterator<char>()));
-
-        cl::Program::Sources source(1, std::make_pair(
-                                        sourceCode.c_str(),
-                                        sourceCode.length() + 1));
-
-        program = cl::Program(context, source);
-        program.build(devices);
+        std::cout << std::endl << "Device doesn't support SVM" << std::endl;
+        return GENERAL_FAILURE;
     }
-    catch(cl::Error error)
-    {
-        std::cout << error.what() << "(" << error.err() << ")"
-                  << std::endl;
-    }
+
+    std::cout << std::endl << "SVM capabilities:" << std::endl;
+
+    std::cout << "\tCL_DEVICE_SVM_COARSE_GRAIN_BUFFER: "
+              << ((caps & CL_DEVICE_SVM_COARSE_GRAIN_BUFFER) != 0)
+              << std::endl;
+
+    std::cout << "\tCL_DEVICE_SVM_FINE_GRAIN_BUFFER:   "
+              << ((caps & CL_DEVICE_SVM_FINE_GRAIN_BUFFER) != 0)
+              << std::endl;
+
+    std::cout << "\tCL_DEVICE_SVM_FINE_GRAIN_SYSTEM:   "
+              << ((caps & CL_DEVICE_SVM_FINE_GRAIN_SYSTEM) != 0)
+              << std::endl;
+        
+    std::cout << "\tCL_DEVICE_SVM_ATOMICS:             "
+              << ((caps & CL_DEVICE_SVM_ATOMICS) != 0)
+              << std::endl << std::endl;
+
+    return SUCCESS;
 }
