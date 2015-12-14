@@ -5,13 +5,13 @@ SET(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 SET(CMAKE_DEPENDS_CHECK_C
-  "/home/ergawy/side/tuts/conv/src/Utils/bmp-utils.c" "/home/ergawy/side/tuts/conv/build/CMakeFiles/conv.dir/src/Utils/bmp-utils.c.o"
-  "/home/ergawy/side/tuts/conv/src/Utils/gold.c" "/home/ergawy/side/tuts/conv/build/CMakeFiles/conv.dir/src/Utils/gold.c.o"
-  "/home/ergawy/side/tuts/conv/src/Utils/utils2.c" "/home/ergawy/side/tuts/conv/build/CMakeFiles/conv.dir/src/Utils/utils2.c.o"
+  "/home/ergawy/side/tuts/prod_cons/src/Utils/bmp-utils.c" "/home/ergawy/side/tuts/prod_cons/build/CMakeFiles/prod_cons.dir/src/Utils/bmp-utils.c.o"
+  "/home/ergawy/side/tuts/prod_cons/src/Utils/gold.c" "/home/ergawy/side/tuts/prod_cons/build/CMakeFiles/prod_cons.dir/src/Utils/gold.c.o"
+  "/home/ergawy/side/tuts/prod_cons/src/Utils/utils.c" "/home/ergawy/side/tuts/prod_cons/build/CMakeFiles/prod_cons.dir/src/Utils/utils.c.o"
   )
 SET(CMAKE_C_COMPILER_ID "GNU")
 SET(CMAKE_DEPENDS_CHECK_CXX
-  "/home/ergawy/side/tuts/conv/src/main.cpp" "/home/ergawy/side/tuts/conv/build/CMakeFiles/conv.dir/src/main.cpp.o"
+  "/home/ergawy/side/tuts/prod_cons/src/main.cpp" "/home/ergawy/side/tuts/prod_cons/build/CMakeFiles/prod_cons.dir/src/main.cpp.o"
   )
 SET(CMAKE_CXX_COMPILER_ID "GNU")
 

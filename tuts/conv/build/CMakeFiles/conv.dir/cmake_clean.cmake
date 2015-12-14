@@ -2,7 +2,7 @@ FILE(REMOVE_RECURSE
   "CMakeFiles/conv.dir/src/main.cpp.o"
   "CMakeFiles/conv.dir/src/Utils/gold.c.o"
   "CMakeFiles/conv.dir/src/Utils/bmp-utils.c.o"
-  "CMakeFiles/conv.dir/src/Utils/utils.c.o"
+  "CMakeFiles/conv.dir/src/Utils/utils2.c.o"
   "conv.pdb"
   "conv"
 )

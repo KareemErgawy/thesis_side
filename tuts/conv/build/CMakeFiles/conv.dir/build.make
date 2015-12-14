@@ -121,35 +121,35 @@ CMakeFiles/conv.dir/src/Utils/bmp-utils.c.o.provides: CMakeFiles/conv.dir/src/Ut
 
 CMakeFiles/conv.dir/src/Utils/bmp-utils.c.o.provides.build: CMakeFiles/conv.dir/src/Utils/bmp-utils.c.o
 
-CMakeFiles/conv.dir/src/Utils/utils.c.o: CMakeFiles/conv.dir/flags.make
-CMakeFiles/conv.dir/src/Utils/utils.c.o: ../src/Utils/utils.c
+CMakeFiles/conv.dir/src/Utils/utils2.c.o: CMakeFiles/conv.dir/flags.make
+CMakeFiles/conv.dir/src/Utils/utils2.c.o: ../src/Utils/utils2.c
 	$(CMAKE_COMMAND) -E cmake_progress_report /home/ergawy/side/tuts/conv/build/CMakeFiles $(CMAKE_PROGRESS_4)
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building C object CMakeFiles/conv.dir/src/Utils/utils.c.o"
-	/usr/bin/cc  $(C_DEFINES) $(C_FLAGS) -o CMakeFiles/conv.dir/src/Utils/utils.c.o   -c /home/ergawy/side/tuts/conv/src/Utils/utils.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building C object CMakeFiles/conv.dir/src/Utils/utils2.c.o"
+	/usr/bin/cc  $(C_DEFINES) $(C_FLAGS) -o CMakeFiles/conv.dir/src/Utils/utils2.c.o   -c /home/ergawy/side/tuts/conv/src/Utils/utils2.c
 
-CMakeFiles/conv.dir/src/Utils/utils.c.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/conv.dir/src/Utils/utils.c.i"
-	/usr/bin/cc  $(C_DEFINES) $(C_FLAGS) -E /home/ergawy/side/tuts/conv/src/Utils/utils.c > CMakeFiles/conv.dir/src/Utils/utils.c.i
+CMakeFiles/conv.dir/src/Utils/utils2.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/conv.dir/src/Utils/utils2.c.i"
+	/usr/bin/cc  $(C_DEFINES) $(C_FLAGS) -E /home/ergawy/side/tuts/conv/src/Utils/utils2.c > CMakeFiles/conv.dir/src/Utils/utils2.c.i
 
-CMakeFiles/conv.dir/src/Utils/utils.c.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/conv.dir/src/Utils/utils.c.s"
-	/usr/bin/cc  $(C_DEFINES) $(C_FLAGS) -S /home/ergawy/side/tuts/conv/src/Utils/utils.c -o CMakeFiles/conv.dir/src/Utils/utils.c.s
+CMakeFiles/conv.dir/src/Utils/utils2.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/conv.dir/src/Utils/utils2.c.s"
+	/usr/bin/cc  $(C_DEFINES) $(C_FLAGS) -S /home/ergawy/side/tuts/conv/src/Utils/utils2.c -o CMakeFiles/conv.dir/src/Utils/utils2.c.s
 
-CMakeFiles/conv.dir/src/Utils/utils.c.o.requires:
-.PHONY : CMakeFiles/conv.dir/src/Utils/utils.c.o.requires
+CMakeFiles/conv.dir/src/Utils/utils2.c.o.requires:
+.PHONY : CMakeFiles/conv.dir/src/Utils/utils2.c.o.requires
 
-CMakeFiles/conv.dir/src/Utils/utils.c.o.provides: CMakeFiles/conv.dir/src/Utils/utils.c.o.requires
-	$(MAKE) -f CMakeFiles/conv.dir/build.make CMakeFiles/conv.dir/src/Utils/utils.c.o.provides.build
-.PHONY : CMakeFiles/conv.dir/src/Utils/utils.c.o.provides
+CMakeFiles/conv.dir/src/Utils/utils2.c.o.provides: CMakeFiles/conv.dir/src/Utils/utils2.c.o.requires
+	$(MAKE) -f CMakeFiles/conv.dir/build.make CMakeFiles/conv.dir/src/Utils/utils2.c.o.provides.build
+.PHONY : CMakeFiles/conv.dir/src/Utils/utils2.c.o.provides
 
-CMakeFiles/conv.dir/src/Utils/utils.c.o.provides.build: CMakeFiles/conv.dir/src/Utils/utils.c.o
+CMakeFiles/conv.dir/src/Utils/utils2.c.o.provides.build: CMakeFiles/conv.dir/src/Utils/utils2.c.o
 
 # Object files for target conv
 conv_OBJECTS = \
 "CMakeFiles/conv.dir/src/main.cpp.o" \
 "CMakeFiles/conv.dir/src/Utils/gold.c.o" \
 "CMakeFiles/conv.dir/src/Utils/bmp-utils.c.o" \
-"CMakeFiles/conv.dir/src/Utils/utils.c.o"
+"CMakeFiles/conv.dir/src/Utils/utils2.c.o"
 
 # External object files for target conv
 conv_EXTERNAL_OBJECTS =
@@ -157,7 +157,7 @@ conv_EXTERNAL_OBJECTS =
 conv: CMakeFiles/conv.dir/src/main.cpp.o
 conv: CMakeFiles/conv.dir/src/Utils/gold.c.o
 conv: CMakeFiles/conv.dir/src/Utils/bmp-utils.c.o
-conv: CMakeFiles/conv.dir/src/Utils/utils.c.o
+conv: CMakeFiles/conv.dir/src/Utils/utils2.c.o
 conv: CMakeFiles/conv.dir/build.make
 conv: /usr/lib/libOpenCL.so
 conv: CMakeFiles/conv.dir/link.txt
@@ -173,7 +173,7 @@ CMakeFiles/conv.dir/build: conv
 CMakeFiles/conv.dir/requires: CMakeFiles/conv.dir/src/main.cpp.o.requires
 CMakeFiles/conv.dir/requires: CMakeFiles/conv.dir/src/Utils/gold.c.o.requires
 CMakeFiles/conv.dir/requires: CMakeFiles/conv.dir/src/Utils/bmp-utils.c.o.requires
-CMakeFiles/conv.dir/requires: CMakeFiles/conv.dir/src/Utils/utils.c.o.requires
+CMakeFiles/conv.dir/requires: CMakeFiles/conv.dir/src/Utils/utils2.c.o.requires
 .PHONY : CMakeFiles/conv.dir/requires
 
 CMakeFiles/conv.dir/clean:

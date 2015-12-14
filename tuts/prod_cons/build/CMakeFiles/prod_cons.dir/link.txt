@@ -1,0 +1,1 @@
+/usr/bin/c++   -O3 -DNDEBUG    CMakeFiles/prod_cons.dir/src/main.cpp.o CMakeFiles/prod_cons.dir/src/Utils/gold.c.o CMakeFiles/prod_cons.dir/src/Utils/bmp-utils.c.o CMakeFiles/prod_cons.dir/src/Utils/utils.c.o  -o prod_cons -rdynamic -lOpenCL 

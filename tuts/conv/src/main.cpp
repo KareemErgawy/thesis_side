@@ -86,7 +86,7 @@ int main()
         std::string sourceCode(std::istreambuf_iterator<char>(
                                    sourceFile),
                                (std::istreambuf_iterator<char>()));
-
+        
         cl::Program::Sources source(1, std::make_pair(
                                         sourceCode.c_str(),
                                         sourceCode.length() + 1));

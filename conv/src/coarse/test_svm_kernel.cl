@@ -1,7 +1,5 @@
-__kernel void test_svm_kernel(__global void* input)
+__kernel void test_svm_kernel(__global int* input)
 {
-    __global int* intInput = (__global int*)(input);
-
     int idx = get_global_id(0);
-    printf("- %d\n", idx);
+    input[idx] = input[idx] + 1;
 }

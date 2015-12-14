@@ -6,33 +6,21 @@
 
 #IncludeRegexTransform: 
 
-/home/ergawy/side/tuts/conv/src/Utils/bmp-utils.c
+/home/ergawy/side/tuts/prod_cons/src/Utils/bmp-utils.h
+
+/home/ergawy/side/tuts/prod_cons/src/main.cpp
 stdio.h
 -
 stdlib.h
 -
-bmp-utils.h
-/home/ergawy/side/tuts/conv/src/Utils/bmp-utils.h
-
-/home/ergawy/side/tuts/conv/src/Utils/bmp-utils.h
-
-/home/ergawy/side/tuts/conv/src/Utils/gold.c
-stdio.h
+string
 -
-stdlib.h
--
-gold.h
-/home/ergawy/side/tuts/conv/src/Utils/gold.h
-
-/home/ergawy/side/tuts/conv/src/Utils/gold.h
-
-/home/ergawy/side/tuts/conv/src/Utils/utils2.c
-stdio.h
--
-stdlib.h
+string.h
 -
 CL/cl.h
 -
+Utils/bmp-utils.h
+/home/ergawy/side/tuts/prod_cons/src/Utils/bmp-utils.h
 
 /opt/AMD-APP-SDK/include/CL/cl.h
 OpenCL/cl_platform.h

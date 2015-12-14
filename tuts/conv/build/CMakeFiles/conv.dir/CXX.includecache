@@ -8,7 +8,7 @@
 
 /home/ergawy/side/tuts/conv/src/Utils/bmp-utils.h
 
-/home/ergawy/side/tuts/conv/src/Utils/utils.h
+/home/ergawy/side/tuts/conv/src/Utils/utils2.h
 CL/cl.h
 -
 
@@ -21,8 +21,8 @@ iostream
 -
 vector
 -
-Utils/utils.h
-/home/ergawy/side/tuts/conv/src/Utils/utils.h
+Utils/utils2.h
+/home/ergawy/side/tuts/conv/src/Utils/utils2.h
 Utils/bmp-utils.h
 /home/ergawy/side/tuts/conv/src/Utils/bmp-utils.h
 

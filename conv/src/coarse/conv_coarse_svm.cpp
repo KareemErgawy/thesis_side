@@ -5,13 +5,14 @@
 
 // TODO: Unify the API usage to C or C++
 // TODO: Proper error handling and reporting
-global_variable void* svm_input;
+global_variable int* svm_input;
 
 int CoarseSVM_ApplyStencil(real32* in_img, uint32 img_width,
                          uint32 img_height, real32* msk,
                          uint32 msk_width, uint32 msk_height,
                          real32* out_img)
 {
+    std::cout << sizeof(int) << std::endl;
     std::cout << "Coarse (SVM) Convolution START!" << std::endl;
     int status;
     cl_int cl_status;
@@ -20,26 +21,26 @@ int CoarseSVM_ApplyStencil(real32* in_img, uint32 img_width,
     status = SetupKernel("test_svm_kernel.cl", "test_svm_kernel");
     CHECK_ERROR(status, "SetupKernel");
     
-    svm_input = clSVMAlloc(context, CL_MEM_READ_WRITE, num_elements*sizeof(int),
-                          0);
+    svm_input = (int*)clSVMAlloc(context, CL_MEM_READ_WRITE,
+                           num_elements*sizeof(int), 0);
     CHECK_ALLOCATION(svm_input, "svm_input");
-
 
     cl_status = clEnqueueSVMMap(queue, CL_TRUE,
                                 CL_MAP_WRITE_INVALIDATE_REGION,
-                                svm_input, num_elements*sizeof(int), 0, NULL,
-                                NULL);
+                                svm_input, num_elements*sizeof(int),
+                                0, NULL, NULL);
     CHECK_OPENCL_ERROR(cl_status, "clEnqueueSVMMap");
 
     for(int i=0 ; i<num_elements ; i++)
     {
-        ((int*)svm_input)[i] = i;
+        (svm_input)[i] = i;
     }
 
     
     for(int i=0 ; i<num_elements ; i++)
     {
-        std::cout << i << ", " << ((int*)svm_input)[i] << std::endl;
+        std::cout << "Host: input[" << i << "] =  "
+                  << (svm_input)[i] << std::endl;
     }
     
     cl_status = clEnqueueSVMUnmap(queue, svm_input, 0, NULL, NULL);
@@ -74,7 +75,22 @@ int CoarseSVM_ApplyStencil(real32* in_img, uint32 img_width,
 
     cl_status = clFlush(queue);
     CHECK_OPENCL_ERROR(cl_status, "clFlush");
-        
+
+    cl_status = clEnqueueSVMMap(queue, CL_TRUE,
+                                CL_MAP_READ,
+                                svm_input, num_elements*sizeof(int),
+                                0, NULL, NULL);
+    CHECK_OPENCL_ERROR(cl_status, "clEnqueueSVMMap");
+
+    for(int i=0 ; i<num_elements ; i++)
+    {
+        std::cout << "Host: input[" << i << "] =  "
+                  << (svm_input)[i] << std::endl;
+    }
+
+    cl_status = clEnqueueSVMUnmap(queue, svm_input, 0, NULL, NULL);
+    CHECK_OPENCL_ERROR(cl_status, "clEnqueueSVMUnmap");
+
     /*
       _img_width = img_width;
       _img_height = img_height;

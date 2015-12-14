@@ -7,13 +7,13 @@ CMakeFiles/conv.dir/src/Utils/bmp-utils.c.o
 CMakeFiles/conv.dir/src/Utils/gold.c.o
  /home/ergawy/side/tuts/conv/src/Utils/gold.c
  /home/ergawy/side/tuts/conv/src/Utils/gold.h
-CMakeFiles/conv.dir/src/Utils/utils.c.o
- /home/ergawy/side/tuts/conv/src/Utils/utils.c
+CMakeFiles/conv.dir/src/Utils/utils2.c.o
+ /home/ergawy/side/tuts/conv/src/Utils/utils2.c
  /opt/AMD-APP-SDK/include/CL/cl.h
  /opt/AMD-APP-SDK/include/CL/cl_platform.h
 CMakeFiles/conv.dir/src/main.cpp.o
  /home/ergawy/side/tuts/conv/src/Utils/bmp-utils.h
- /home/ergawy/side/tuts/conv/src/Utils/utils.h
+ /home/ergawy/side/tuts/conv/src/Utils/utils2.h
  /home/ergawy/side/tuts/conv/src/main.cpp
  /opt/AMD-APP-SDK/include/CL/cl.h
  /opt/AMD-APP-SDK/include/CL/cl.hpp

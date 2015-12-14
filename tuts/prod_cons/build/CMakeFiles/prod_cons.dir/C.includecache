@@ -6,31 +6,37 @@
 
 #IncludeRegexTransform: 
 
-/home/ergawy/side/tuts/conv/src/Utils/bmp-utils.c
+/home/ergawy/side/tuts/prod_cons/src/Utils/bmp-utils.c
 stdio.h
 -
 stdlib.h
 -
 bmp-utils.h
-/home/ergawy/side/tuts/conv/src/Utils/bmp-utils.h
+/home/ergawy/side/tuts/prod_cons/src/Utils/bmp-utils.h
 
-/home/ergawy/side/tuts/conv/src/Utils/bmp-utils.h
+/home/ergawy/side/tuts/prod_cons/src/Utils/bmp-utils.h
 
-/home/ergawy/side/tuts/conv/src/Utils/gold.c
+/home/ergawy/side/tuts/prod_cons/src/Utils/gold.c
 stdio.h
 -
 stdlib.h
 -
 gold.h
-/home/ergawy/side/tuts/conv/src/Utils/gold.h
+/home/ergawy/side/tuts/prod_cons/src/Utils/gold.h
 
-/home/ergawy/side/tuts/conv/src/Utils/gold.h
+/home/ergawy/side/tuts/prod_cons/src/Utils/gold.h
 
-/home/ergawy/side/tuts/conv/src/Utils/utils2.c
+/home/ergawy/side/tuts/prod_cons/src/Utils/utils.c
+utils.h
+/home/ergawy/side/tuts/prod_cons/src/Utils/utils.h
 stdio.h
 -
 stdlib.h
 -
+CL/cl.h
+-
+
+/home/ergawy/side/tuts/prod_cons/src/Utils/utils.h
 CL/cl.h
 -
 

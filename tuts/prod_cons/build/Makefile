@@ -42,10 +42,10 @@ EQUALS = =
 CMAKE_EDIT_COMMAND = /usr/bin/ccmake
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/ergawy/side/tuts/conv
+CMAKE_SOURCE_DIR = /home/ergawy/side/tuts/prod_cons
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/ergawy/side/tuts/conv/build
+CMAKE_BINARY_DIR = /home/ergawy/side/tuts/prod_cons/build
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -72,9 +72,9 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/ergawy/side/tuts/conv/build/CMakeFiles /home/ergawy/side/tuts/conv/build/CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/ergawy/side/tuts/prod_cons/build/CMakeFiles /home/ergawy/side/tuts/prod_cons/build/CMakeFiles/progress.marks
 	$(MAKE) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/ergawy/side/tuts/conv/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/ergawy/side/tuts/prod_cons/build/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
@@ -102,24 +102,24 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named conv
+# Target rules for targets named prod_cons
 
 # Build rule for target.
-conv: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 conv
-.PHONY : conv
+prod_cons: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 prod_cons
+.PHONY : prod_cons
 
 # fast build rule for target.
-conv/fast:
-	$(MAKE) -f CMakeFiles/conv.dir/build.make CMakeFiles/conv.dir/build
-.PHONY : conv/fast
+prod_cons/fast:
+	$(MAKE) -f CMakeFiles/prod_cons.dir/build.make CMakeFiles/prod_cons.dir/build
+.PHONY : prod_cons/fast
 
 src/Utils/bmp-utils.o: src/Utils/bmp-utils.c.o
 .PHONY : src/Utils/bmp-utils.o
 
 # target to build an object file
 src/Utils/bmp-utils.c.o:
-	$(MAKE) -f CMakeFiles/conv.dir/build.make CMakeFiles/conv.dir/src/Utils/bmp-utils.c.o
+	$(MAKE) -f CMakeFiles/prod_cons.dir/build.make CMakeFiles/prod_cons.dir/src/Utils/bmp-utils.c.o
 .PHONY : src/Utils/bmp-utils.c.o
 
 src/Utils/bmp-utils.i: src/Utils/bmp-utils.c.i
@@ -127,7 +127,7 @@ src/Utils/bmp-utils.i: src/Utils/bmp-utils.c.i
 
 # target to preprocess a source file
 src/Utils/bmp-utils.c.i:
-	$(MAKE) -f CMakeFiles/conv.dir/build.make CMakeFiles/conv.dir/src/Utils/bmp-utils.c.i
+	$(MAKE) -f CMakeFiles/prod_cons.dir/build.make CMakeFiles/prod_cons.dir/src/Utils/bmp-utils.c.i
 .PHONY : src/Utils/bmp-utils.c.i
 
 src/Utils/bmp-utils.s: src/Utils/bmp-utils.c.s
@@ -135,7 +135,7 @@ src/Utils/bmp-utils.s: src/Utils/bmp-utils.c.s
 
 # target to generate assembly for a file
 src/Utils/bmp-utils.c.s:
-	$(MAKE) -f CMakeFiles/conv.dir/build.make CMakeFiles/conv.dir/src/Utils/bmp-utils.c.s
+	$(MAKE) -f CMakeFiles/prod_cons.dir/build.make CMakeFiles/prod_cons.dir/src/Utils/bmp-utils.c.s
 .PHONY : src/Utils/bmp-utils.c.s
 
 src/Utils/gold.o: src/Utils/gold.c.o
@@ -143,7 +143,7 @@ src/Utils/gold.o: src/Utils/gold.c.o
 
 # target to build an object file
 src/Utils/gold.c.o:
-	$(MAKE) -f CMakeFiles/conv.dir/build.make CMakeFiles/conv.dir/src/Utils/gold.c.o
+	$(MAKE) -f CMakeFiles/prod_cons.dir/build.make CMakeFiles/prod_cons.dir/src/Utils/gold.c.o
 .PHONY : src/Utils/gold.c.o
 
 src/Utils/gold.i: src/Utils/gold.c.i
@@ -151,7 +151,7 @@ src/Utils/gold.i: src/Utils/gold.c.i
 
 # target to preprocess a source file
 src/Utils/gold.c.i:
-	$(MAKE) -f CMakeFiles/conv.dir/build.make CMakeFiles/conv.dir/src/Utils/gold.c.i
+	$(MAKE) -f CMakeFiles/prod_cons.dir/build.make CMakeFiles/prod_cons.dir/src/Utils/gold.c.i
 .PHONY : src/Utils/gold.c.i
 
 src/Utils/gold.s: src/Utils/gold.c.s
@@ -159,39 +159,39 @@ src/Utils/gold.s: src/Utils/gold.c.s
 
 # target to generate assembly for a file
 src/Utils/gold.c.s:
-	$(MAKE) -f CMakeFiles/conv.dir/build.make CMakeFiles/conv.dir/src/Utils/gold.c.s
+	$(MAKE) -f CMakeFiles/prod_cons.dir/build.make CMakeFiles/prod_cons.dir/src/Utils/gold.c.s
 .PHONY : src/Utils/gold.c.s
 
-src/Utils/utils2.o: src/Utils/utils2.c.o
-.PHONY : src/Utils/utils2.o
+src/Utils/utils.o: src/Utils/utils.c.o
+.PHONY : src/Utils/utils.o
 
 # target to build an object file
-src/Utils/utils2.c.o:
-	$(MAKE) -f CMakeFiles/conv.dir/build.make CMakeFiles/conv.dir/src/Utils/utils2.c.o
-.PHONY : src/Utils/utils2.c.o
+src/Utils/utils.c.o:
+	$(MAKE) -f CMakeFiles/prod_cons.dir/build.make CMakeFiles/prod_cons.dir/src/Utils/utils.c.o
+.PHONY : src/Utils/utils.c.o
 
-src/Utils/utils2.i: src/Utils/utils2.c.i
-.PHONY : src/Utils/utils2.i
+src/Utils/utils.i: src/Utils/utils.c.i
+.PHONY : src/Utils/utils.i
 
 # target to preprocess a source file
-src/Utils/utils2.c.i:
-	$(MAKE) -f CMakeFiles/conv.dir/build.make CMakeFiles/conv.dir/src/Utils/utils2.c.i
-.PHONY : src/Utils/utils2.c.i
+src/Utils/utils.c.i:
+	$(MAKE) -f CMakeFiles/prod_cons.dir/build.make CMakeFiles/prod_cons.dir/src/Utils/utils.c.i
+.PHONY : src/Utils/utils.c.i
 
-src/Utils/utils2.s: src/Utils/utils2.c.s
-.PHONY : src/Utils/utils2.s
+src/Utils/utils.s: src/Utils/utils.c.s
+.PHONY : src/Utils/utils.s
 
 # target to generate assembly for a file
-src/Utils/utils2.c.s:
-	$(MAKE) -f CMakeFiles/conv.dir/build.make CMakeFiles/conv.dir/src/Utils/utils2.c.s
-.PHONY : src/Utils/utils2.c.s
+src/Utils/utils.c.s:
+	$(MAKE) -f CMakeFiles/prod_cons.dir/build.make CMakeFiles/prod_cons.dir/src/Utils/utils.c.s
+.PHONY : src/Utils/utils.c.s
 
 src/main.o: src/main.cpp.o
 .PHONY : src/main.o
 
 # target to build an object file
 src/main.cpp.o:
-	$(MAKE) -f CMakeFiles/conv.dir/build.make CMakeFiles/conv.dir/src/main.cpp.o
+	$(MAKE) -f CMakeFiles/prod_cons.dir/build.make CMakeFiles/prod_cons.dir/src/main.cpp.o
 .PHONY : src/main.cpp.o
 
 src/main.i: src/main.cpp.i
@@ -199,7 +199,7 @@ src/main.i: src/main.cpp.i
 
 # target to preprocess a source file
 src/main.cpp.i:
-	$(MAKE) -f CMakeFiles/conv.dir/build.make CMakeFiles/conv.dir/src/main.cpp.i
+	$(MAKE) -f CMakeFiles/prod_cons.dir/build.make CMakeFiles/prod_cons.dir/src/main.cpp.i
 .PHONY : src/main.cpp.i
 
 src/main.s: src/main.cpp.s
@@ -207,7 +207,7 @@ src/main.s: src/main.cpp.s
 
 # target to generate assembly for a file
 src/main.cpp.s:
-	$(MAKE) -f CMakeFiles/conv.dir/build.make CMakeFiles/conv.dir/src/main.cpp.s
+	$(MAKE) -f CMakeFiles/prod_cons.dir/build.make CMakeFiles/prod_cons.dir/src/main.cpp.s
 .PHONY : src/main.cpp.s
 
 # Help Target
@@ -216,8 +216,8 @@ help:
 	@echo "... all (the default if no target is provided)"
 	@echo "... clean"
 	@echo "... depend"
-	@echo "... conv"
 	@echo "... edit_cache"
+	@echo "... prod_cons"
 	@echo "... rebuild_cache"
 	@echo "... src/Utils/bmp-utils.o"
 	@echo "... src/Utils/bmp-utils.i"
@@ -225,9 +225,9 @@ help:
 	@echo "... src/Utils/gold.o"
 	@echo "... src/Utils/gold.i"
 	@echo "... src/Utils/gold.s"
-	@echo "... src/Utils/utils2.o"
-	@echo "... src/Utils/utils2.i"
-	@echo "... src/Utils/utils2.s"
+	@echo "... src/Utils/utils.o"
+	@echo "... src/Utils/utils.i"
+	@echo "... src/Utils/utils.s"
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
