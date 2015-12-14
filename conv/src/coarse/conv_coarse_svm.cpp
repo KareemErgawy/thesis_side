@@ -1,291 +1,176 @@
 #include <coarse/conv_coarse_svm.h>
 
-// NOTE: A mixture of C and C++ CL API calls is used here because SVM
-// functionality is not added to the wrapper yet
-
-// TODO: Unify the API usage to C or C++
-// TODO: Proper error handling and reporting
-global_variable int* svm_input;
-
 int CoarseSVM_ApplyStencil(real32* in_img, uint32 img_width,
-                         uint32 img_height, real32* msk,
-                         uint32 msk_width, uint32 msk_height,
-                         real32* out_img)
+                           uint32 img_height, real32* msk,
+                           uint32 msk_width, uint32 msk_height,
+                           real32* out_img)
 {
-    std::cout << sizeof(int) << std::endl;
     std::cout << "Coarse (SVM) Convolution START!" << std::endl;
-    int status;
-    cl_int cl_status;
-    int num_elements = 10;
-    
-    status = SetupKernel("test_svm_kernel.cl", "test_svm_kernel");
-    CHECK_ERROR(status, "SetupKernel");
-    
-    svm_input = (int*)clSVMAlloc(context, CL_MEM_READ_WRITE,
-                           num_elements*sizeof(int), 0);
-    CHECK_ALLOCATION(svm_input, "svm_input");
 
-    cl_status = clEnqueueSVMMap(queue, CL_TRUE,
-                                CL_MAP_WRITE_INVALIDATE_REGION,
-                                svm_input, num_elements*sizeof(int),
-                                0, NULL, NULL);
-    CHECK_OPENCL_ERROR(cl_status, "clEnqueueSVMMap");
-
-    for(int i=0 ; i<num_elements ; i++)
-    {
-        (svm_input)[i] = i;
-    }
-
-    
-    for(int i=0 ; i<num_elements ; i++)
-    {
-        std::cout << "Host: input[" << i << "] =  "
-                  << (svm_input)[i] << std::endl;
-    }
-    
-    cl_status = clEnqueueSVMUnmap(queue, svm_input, 0, NULL, NULL);
-    CHECK_OPENCL_ERROR(cl_status, "clEnqueueSVMUnmap");
-
-    cl_status = clGetKernelWorkGroupInfo(
-        kernel, device, CL_KERNEL_WORK_GROUP_SIZE, sizeof(size_t),
-        &kernel_wrkgrp_size, NULL);
-    CHECK_OPENCL_ERROR(cl_status, "clGetKernelWorkGroupInfo");
-    
-    cl_status = clGetKernelWorkGroupInfo(
-        kernel, device, CL_KERNEL_LOCAL_MEM_SIZE, sizeof(cl_ulong),
-        &compile_wrkgrp_size, NULL);
-    CHECK_OPENCL_ERROR(cl_status, "clGetKernelWorkGroupInfo");
-    
-    cl_status = clGetKernelWorkGroupInfo(
-        kernel, device, CL_KERNEL_COMPILE_WORK_GROUP_SIZE,
-        sizeof(size_t)*3, &compile_wrkgrp_size, NULL);
-    CHECK_OPENCL_ERROR(cl_status, "clGetKernelWorkGroupInfo");
-
-    size_t local_threads = 1;//kernel_wrkgrp_size;
-    size_t globl_threads = num_elements;
-
-    cl_status = clSetKernelArgSVMPointer(kernel, 0, (void*)(svm_input));
-    CHECK_OPENCL_ERROR(cl_status, "clSetKernelArgSVMPointer");
-
-    cl_event ndr_event;
-    cl_status = clEnqueueNDRangeKernel(queue, kernel, 1, NULL,
-                                       &globl_threads, NULL,
-                                       0, NULL, &ndr_event);
-    CHECK_OPENCL_ERROR(cl_status, "clEnqueueNDRangeKernel");
-
-    cl_status = clFlush(queue);
-    CHECK_OPENCL_ERROR(cl_status, "clFlush");
-
-    cl_status = clEnqueueSVMMap(queue, CL_TRUE,
-                                CL_MAP_READ,
-                                svm_input, num_elements*sizeof(int),
-                                0, NULL, NULL);
-    CHECK_OPENCL_ERROR(cl_status, "clEnqueueSVMMap");
-
-    for(int i=0 ; i<num_elements ; i++)
-    {
-        std::cout << "Host: input[" << i << "] =  "
-                  << (svm_input)[i] << std::endl;
-    }
-
-    cl_status = clEnqueueSVMUnmap(queue, svm_input, 0, NULL, NULL);
-    CHECK_OPENCL_ERROR(cl_status, "clEnqueueSVMUnmap");
-
-    /*
-      _img_width = img_width;
-      _img_height = img_height;
-      _msk_width = msk_width;
-      _msk_height = msk_height;
-      _half_w = msk_width / 2;
-      _half_h = msk_height / 2;
+    _img_width = img_width;
+    _img_height = img_height;
+    _msk_width = msk_width;
+    _msk_height = msk_height;
+    _half_w = msk_width / 2;
+    _half_h = msk_height / 2;
 
     _img_size = img_width * img_height;
     _inner_width = (img_width - (_half_w*2));
     _inner_height = (img_height - (_half_h*2));
     _inner_size = _inner_width * _inner_height;
     _msk_size = msk_width * msk_height;
-    
-    try
-    {
-        kernel_file_name = "conv_kernel.cl";
-        kernel_name = "conv_kernel";
-        SetupOpenCL();
-
-        cl_int status;
-                
-        status = AllocateSVMObjects();
-        //status = SVMHandleAllBoundries(in_img, msk, out_img);
-        status = SVMHandleInnerRegions();
-        //status = CopyOutputFromSVM(out_img);
-
-        clSVMFree(context(), _in_img);
-        clSVMFree(context(), _msk);
-        clSVMFree(context(), _out_img);
         
-        Print2DArray("Output Image: ", out_img, img_width,
-                     img_height);
-    }
-    catch(cl::Error error)
-    {
-        std::cout << error.what() << "(" << error.err() << ")"
-                  << std::endl;
-    }
-    */
+    cl_int status;
+                
+    status = AllocateSVMObjects();
+    CHECK_ERROR(status, "AllocateSVMObjects");
+    status = SVMHandleAllBoundries(in_img, msk, out_img);
+    CHECK_ERROR(status, "SVMHandleAllBoundries");
+//    status = ClearSVMObject();
+//    CHECK_ERROR(status, "ClearSVMObject");
+    status = SVMHandleInnerRegions();
+    CHECK_ERROR(status, "SVMHandleInnerRegions");
+    status = CopyOutputFromSVM(out_img);
+    CHECK_ERROR(status, "CopyOutputFromSVM");
+
+    clSVMFree(context, _in_img);
+    clSVMFree(context, _msk);
+    clSVMFree(context, _out_img);
+        
+//    Print2DArray("Output Image: ", out_img, img_width,
+//                 img_height);
     
     std::cout << "Coarse (SVM) Convolution FINISH!" << std::endl;
     std::cout << "======================" << std::endl;
     return SUCCESS;
 }
 
-cl_int AllocateSVMObjects()
+int AllocateSVMObjects()
 {
-    /*
-    _in_img = (real32*)clSVMAlloc(
-        context(), CL_MEM_READ_WRITE, _img_size*sizeof(real32), 0);
-    
-    if(_in_img == NULL)
-    {
-        std::cerr << "Cannot allocate SVM memory for svm_in_img"
-                  << std::endl;
-        return 1;
-    }
-    else
-    {
-        std::cerr << "Allocated SVM memory for svm_in_img"
-                  << std::endl;
-    }
+    _in_img = (real32*)clSVMAlloc(context, CL_MEM_READ_WRITE,
+                                  _img_size*sizeof(real32), 0);
+    CHECK_ALLOCATION(_in_img, "_in_img");
         
-    _msk = (real32*)clSVMAlloc(
-        context(), CL_MEM_READ_WRITE, _msk_size*sizeof(real32), 0);
-
-    if(_msk == NULL)
-    {
-        std::cerr << "Cannot allocate SVM memory for svm_msk"
-                  << std::endl;
-        return 1;
-    }
-    else
-    {
-        std::cerr << "Allocated SVM memory for svm_msk"
-                  << std::endl;
-    }
+    _msk = (real32*)clSVMAlloc(context, CL_MEM_READ_WRITE,
+                               _msk_size*sizeof(real32), 0);
+    CHECK_ALLOCATION(_msk, "_msk");
 
     _out_img = (real32*)clSVMAlloc(
-        context(), CL_MEM_READ_WRITE, _img_size*sizeof(real32), 0);
-
-    if(_out_img == NULL)
-    {
-        std::cerr << "Cannot allocate SVM memory for svm_out_img"
-                  << std::endl;
-        return 1;
-    }
-    else
-    {
-        std::cerr << "Allocated SVM memory for svm_out_img"
-                  << std::endl;
-    }
-    */
-    return 0;
+        context, CL_MEM_READ_WRITE, _img_size*sizeof(real32), 0);
+    CHECK_ALLOCATION(_out_img, "_out_img");
+    
+    return SUCCESS;
 }
 
-cl_int SVMHandleAllBoundries(real32* in_img, real32* msk,
+int ClearSVMObject()
+{
+    cl_int status;
+    status = clEnqueueSVMMap(queue, CL_TRUE,
+                             CL_MAP_WRITE_INVALIDATE_REGION,
+                             _out_img, _img_size*sizeof(real32),
+                             0, NULL, NULL);
+    CHECK_OPENCL_ERROR(status, "clEnqueueSVMMap");
+
+    Clear2DArray(_out_img, _img_width, _img_height, 0);
+
+    status = clEnqueueSVMUnmap(queue, _in_img, 0, NULL, NULL);
+    CHECK_OPENCL_ERROR(status, "clEnqueueSVMUnmap");
+}
+
+int SVMHandleAllBoundries(real32* in_img, real32* msk,
                              real32* out_img)
 {
-    /*
     cl_int status;
     
     // Map SVM objects into the host address space to copy input
     // data and handle the boundaries
-    status = clEnqueueSVMMap(queue(), CL_TRUE, CL_MAP_READ,
+    status = clEnqueueSVMMap(queue, CL_TRUE,
+                             CL_MAP_WRITE_INVALIDATE_REGION,
                              _in_img, _img_size*sizeof(real32),
                              0, NULL, NULL);
+    CHECK_OPENCL_ERROR(status, "clEnqueueSVMMap");
     // TODO: this will be replaced by initialization after making each
     // implementation responsilbe for its memory allocations
     std::memcpy(_in_img, in_img, _img_size*sizeof(real32));
 
-    status = clEnqueueSVMMap(queue(), CL_TRUE, CL_MAP_READ,
+    status = clEnqueueSVMMap(queue, CL_TRUE,
+                             CL_MAP_WRITE_INVALIDATE_REGION,
                              _msk, _msk_size*sizeof(real32),
                              0, NULL, NULL);
+    CHECK_OPENCL_ERROR(status, "clEnqueueSVMMap");
     std::memcpy(_msk, msk, _msk_size*sizeof(real32));
 
-    status = clEnqueueSVMMap(queue(), CL_TRUE,
+    status = clEnqueueSVMMap(queue, CL_TRUE,
                              CL_MAP_WRITE_INVALIDATE_REGION,
                              _out_img, _img_size*sizeof(real32),
                              0, NULL, NULL);
+    CHECK_OPENCL_ERROR(status, "clEnqueueSVMMap");
 
     HandleAllBoundries();
         
-    status = clEnqueueSVMUnmap(queue(), _in_img, 0, NULL, NULL);
-    status = clEnqueueSVMUnmap(queue(), _msk, 0, NULL, NULL);
-    status = clEnqueueSVMUnmap(queue(), _out_img, 0, NULL, NULL);
-
+    status = clEnqueueSVMUnmap(queue, _in_img, 0, NULL, NULL);
+    CHECK_OPENCL_ERROR(status, "clEnqueueSVMUnmap");
+    status = clEnqueueSVMUnmap(queue, _msk, 0, NULL, NULL);
+    CHECK_OPENCL_ERROR(status, "clEnqueueSVMUnmap");
+    status = clEnqueueSVMUnmap(queue, _out_img, 0, NULL, NULL);
+    CHECK_OPENCL_ERROR(status, "clEnqueueSVMUnmap");
+    
     return status;
-    */
-    return 0;
 }
 
-cl_int SVMHandleInnerRegions()
+int SVMHandleInnerRegions()
 {
-    /*
-    cl_int status;
-    
-    cl::Kernel kernel(program, kernel_name.c_str());
-    status = clSetKernelArgSVMPointer(kernel(), 0, (void*)_in_img);
+    int status;
+
+    status = SetupKernel("conv_kernel.cl", "conv_kernel");
+    CHECK_ERROR(status, "SetupKernel");
+
+    status = clSetKernelArgSVMPointer(kernel, 0, _in_img);
     CHECK_OPENCL_ERROR(status, "clSetKernelArgSVMPointer");
 
-    status = kernel.setArg(1, _img_width);
-    CHECK_OPENCL_ERROR(status, "kernel.setArg");
+    status = clSetKernelArg(kernel, 1, sizeof(uint32), &_img_width);
+    CHECK_OPENCL_ERROR(status, "clSetKernelArg");
 
-    status = kernel.setArg(2, _img_height);
-    CHECK_OPENCL_ERROR(status, "kernel.setArg");
+    status = clSetKernelArg(kernel, 2, sizeof(uint32), &_img_height);
+    CHECK_OPENCL_ERROR(status, "clSetKernelArg");
+    
+    status = clSetKernelArgSVMPointer(kernel,  3, _msk);
+    CHECK_OPENCL_ERROR(status, "clSetKernelArgSVMPointer");
+
+    status = clSetKernelArg(kernel, 4, sizeof(uint32), &_msk_width);
+    CHECK_OPENCL_ERROR(status, "clSetKernelArg");
+
+    status = clSetKernelArg(kernel, 5, sizeof(uint32), &_msk_height);
+    CHECK_OPENCL_ERROR(status, "clSetKernelArg");
         
-    status = clSetKernelArgSVMPointer(kernel(), 3, (void*)_msk);
-    CHECK_OPENCL_ERROR(status, "clSetKernelArgSVMPointer");
-
-    status = kernel.setArg(4, _msk_width);
-    CHECK_OPENCL_ERROR(status, "kernel.setArg");
-    
-    status = kernel.setArg(5, _msk_height);
-    CHECK_OPENCL_ERROR(status, "kernel.setArg");
-    
-    status = clSetKernelArgSVMPointer(kernel(), 6, (void*)_out_img);
+    status = clSetKernelArgSVMPointer(kernel, 6, _out_img);
     CHECK_OPENCL_ERROR(status, "clSetKernelArgSVMPointer");
         
     // TODO play with local range to understand its effect
-    cl::NDRange global(_inner_width, _inner_height);
+    size_t global[2];
+    global[0] = _inner_width;
+    global[1] = _inner_height;
 
-    cl::Event event;
-    status = queue.enqueueNDRangeKernel(kernel, cl::NullRange,
-                                        global, cl::NullRange,
-                                        NULL, &event);
+    status = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, global,
+                                    NULL, 0, NULL, NULL);
+    CHECK_OPENCL_ERROR(status, "clEnqueueNDRangeKernel");
 
-    std::cout << "Kernel result: " << status << std::endl;
-
-    cl_int exec_state =
-        event.getInfo<CL_EVENT_COMMAND_EXECUTION_STATUS>();
-    std::cout << "Exec state: " << exec_state << std::endl;
-    status = clWaitForEvents(1, &event());
-    std::cout << status << std::endl;
-    exec_state =
-        event.getInfo<CL_EVENT_COMMAND_EXECUTION_STATUS>();
-    std::cout << "Exec state2: " << exec_state << std::endl;
-
-    status = clReleaseEvent(event());    
-    status = clFlush(queue());
-    */
+    status = clFlush(queue);
+    CHECK_OPENCL_ERROR(status, "clFlush");
 }
 
 cl_int CopyOutputFromSVM(real32* out_img)
 {
-    /*
     cl_int status;
-    status = clEnqueueSVMMap(queue(), CL_TRUE, CL_MAP_WRITE,
+    status = clEnqueueSVMMap(queue, CL_TRUE, CL_MAP_READ,
                              _out_img, _img_size*sizeof(real32),
                              0, NULL, NULL);
-    std::memcpy(_out_img, out_img, _img_size*sizeof(real32));
-    status = clEnqueueSVMUnmap(queue(), _out_img, 0, NULL, NULL);
+    CHECK_OPENCL_ERROR(status, "clEnqueueSVMMap");
+    
+    std::memcpy(out_img, _out_img, _img_size*sizeof(real32));
 
+    status = clEnqueueSVMUnmap(queue, _out_img, 0, NULL, NULL);
+    CHECK_OPENCL_ERROR(status, "clEnqueueSVMUnmap");
+    
     return status;
-    */
-    return 0;
 }

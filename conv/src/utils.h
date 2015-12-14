@@ -78,6 +78,9 @@ void GenerateGaussianBlurFilter_5X5(real32* msk);
 bool CompareImages(real32* img1, real32* img2, uint32 img_width,
                    uint32 img_height);
 
+void Clear2DArray(real32* array, uint32 width, uint32 height,
+                  real32 value);
+
 //
 // OpenCL util functions
 //

@@ -1,10 +1,10 @@
 #if !defined(CONV_COARSE_SVM_H)
 
-global_variable real32 _img_size;
-global_variable real32 _inner_width;
-global_variable real32 _inner_height;
-global_variable real32 _inner_size;
-global_variable real32 _msk_size;
+global_variable uint32 _img_size;
+global_variable uint32 _inner_width;
+global_variable uint32 _inner_height;
+global_variable uint32 _inner_size;
+global_variable uint32 _msk_size;
 
 global_variable size_t kernel_wrkgrp_size;
 global_variable cl_ulong kernel_local_mem_used;
@@ -17,6 +17,7 @@ int CoarseSVM_ApplyStencil(real32* in_img, uint32 img_width,
                          real32* out_img);
 
 int AllocateSVMObjects();
+int ClearSVMObject();
 int SVMHandleAllBoundries(real32* in_img, real32* msk,
                              real32* out_img);
 int SVMHandleInnerRegions();

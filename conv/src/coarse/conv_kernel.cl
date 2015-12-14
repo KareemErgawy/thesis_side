@@ -21,7 +21,4 @@ __kernel void conv_kernel(__global float* in_img, int img_width,
                    *msk[((half_h+r)*msk_width)+half_w+c]);
         }
     }
-
-    printf("%d %f\n", ((row*img_width)+col),
-           out_img[(row*img_width)+col]);
 }

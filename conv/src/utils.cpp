@@ -22,6 +22,20 @@ void Print2DArray(std::string message, real32* array, uint32 width,
 
 }
 
+void Clear2DArray(real32* array, uint32 width, uint32 height,
+                  real32 value)
+{
+    uint32 c, r;
+    
+    for(r=0 ; r<height ; r++)
+    {
+        for(c=0 ; c<width ; c++)
+        {
+            array[(r*width) + c] = value;
+        }
+    }    
+}
+
 void GenerateTestImage(real32* img, uint32 img_width,
                      uint32 img_height)
 {
