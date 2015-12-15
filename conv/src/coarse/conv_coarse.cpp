@@ -1,11 +1,22 @@
 #include <coarse/conv_coarse.h>
 
 int Coarse_ApplyStencil(real32* in_img, uint32 img_width,
-                         uint32 img_height, real32* msk,
-                         uint32 msk_width, uint32 msk_height,
-                         real32* out_img)
+                        uint32 img_height, real32* msk,
+                        uint32 msk_width, uint32 msk_height,
+                        real32* out_img, bool use_urolled)
 {
     std::cout << "Coarse (non-SVM) Convolution START!" << std::endl;
+
+    if(use_urolled)
+    {
+        std::cout << "Urolled kernel used";
+    }
+    else
+    {
+        std::cout << "Urolled kernel used NOT used";        
+    }
+    std::cout << std::endl;
+
     //Print2DArray("Input Image: ", in_img, img_width, img_height);
     _in_img = in_img;
     _img_width = img_width;
@@ -49,37 +60,41 @@ int Coarse_ApplyStencil(real32* in_img, uint32 img_width,
                                   msk, 0, NULL, NULL);
     CHECK_OPENCL_ERROR(status, "clEnqueueWriteBuffer");
 
-    status = SetupKernel("conv_kernel.cl", "conv_kernel");
+    if(use_urolled)
+    {
+        status = SetupKernel("conv_kernel_unrolled.cl",
+                             "conv_kernel");
+    }
+    else
+    {
+        status = SetupKernel("conv_kernel.cl", "conv_kernel");
+    }
     CHECK_ERROR(status, "SetupKernel");
 
-    status = clSetKernelArg(kernel, 0, sizeof(cl_mem),
+    int arg_idx = 0;
+    status = clSetKernelArg(kernel, arg_idx++, sizeof(cl_mem),
                             &in_img_buf);
     CHECK_OPENCL_ERROR(status, "clSetKernelArg");
         
-    status = clSetKernelArg(kernel, 1, sizeof(uint32),
+    status = clSetKernelArg(kernel, arg_idx++, sizeof(uint32),
                             &img_width);
     CHECK_OPENCL_ERROR(status, "clSetKernelArg");
         
-    status = clSetKernelArg(kernel, 2, sizeof(uint32),
-                            &img_height);
-    CHECK_OPENCL_ERROR(status, "clSetKernelArg");
-        
-    status = clSetKernelArg(kernel, 3, sizeof(cl_mem),
+    status = clSetKernelArg(kernel, arg_idx++, sizeof(cl_mem),
                             &msk_buf);
     CHECK_OPENCL_ERROR(status, "clSetKernelArg");
-        
-    status = clSetKernelArg(kernel, 4, sizeof(uint32),
-                            &msk_width);
-    CHECK_OPENCL_ERROR(status, "clSetKernelArg");
-        
-    status = clSetKernelArg(kernel, 5, sizeof(uint32),
-                            &msk_height);
-    CHECK_OPENCL_ERROR(status, "clSetKernelArg");
-        
-    status = clSetKernelArg(kernel, 6, sizeof(cl_mem),
+
+    if(!use_urolled)
+    {
+        status = clSetKernelArg(kernel, arg_idx++, sizeof(uint32),
+                                &msk_width);
+        CHECK_OPENCL_ERROR(status, "clSetKernelArg");
+    }
+    
+    status = clSetKernelArg(kernel, arg_idx++, sizeof(cl_mem),
                             &out_img_buf);
     CHECK_OPENCL_ERROR(status, "clSetKernelArg");
-        
+    
     // TODO play with local range to understand its effect
         
     // TODO use offset fields instead of calculating that in the
@@ -101,7 +116,7 @@ int Coarse_ApplyStencil(real32* in_img, uint32 img_width,
     // TODO: try to use clEnqueueNativeKernel here
     HandleAllBoundries();
 
-//    Print2DArray("Output Image: ", out_img, img_width, img_height);
+    //Print2DArray("Output Image: ", out_img, img_width, img_height);
     std::cout << "Coarse (non-SVM) Convolution FINISH!" << std::endl;
     std::cout << "======================" << std::endl;
 

@@ -5,7 +5,7 @@ __constant sampler_t sampler =
 
 __kernel
 void producerKernel(image2d_t __read_only inputImage,
-                    __write_only pipe float* outputPipe,
+                    __write_only pipe float outputPipe,
 		    __constant float* filter,
 		    int filterWidth)
 {
@@ -30,7 +30,16 @@ void producerKernel(image2d_t __read_only inputImage,
 	}
     }
 
-    write_pipe(outputPipe, &sum);
+    reserve_id_t res_id;
+    res_id = reserve_write_pipe(outputPipe, 1);
+
+    if(is_valid_reserve_id(res_id))
+    {
+        if(write_pipe(outputPipe, res_id, 0, &sum) == 0)
+	{
+	    commit_write_pipe(outputPipe, res_id);
+	}
+    }
 }
 
 __kernel
@@ -43,6 +52,17 @@ void consumerKernel(pipe __read_only float* inputPipe,
 
     for(pixelCnt=0 ; pixelCnt<totalPixels ; pixelCnt++)
     {
+        reserve_id_t res_id;
+        res_id = reserve_read_pipe(inputPipe, 1);
+
+        if(is_valid_reserve_id(res_id))
+	{
+	    if(read_pipe(inputPipe, res_id, 0, &pixel) == 0)
+	    {
+	        commit_read_pipe(inputPipe, res_id);
+	    }
+	}
+
         while(read_pipe(inputPipe, &pixel));
 	histogram[(int)pixel]++;
     }

@@ -3,10 +3,20 @@
 int CoarseSVM_ApplyStencil(real32* in_img, uint32 img_width,
                            uint32 img_height, real32* msk,
                            uint32 msk_width, uint32 msk_height,
-                           real32* out_img)
+                           real32* out_img, bool use_urolled)
 {
     std::cout << "Coarse (SVM) Convolution START!" << std::endl;
 
+    if(use_urolled)
+    {
+        std::cout << "Urolled kernel used";
+    }
+    else
+    {
+        std::cout << "Urolled kernel used NOT used";        
+    }
+    std::cout << std::endl;
+    
     _img_width = img_width;
     _img_height = img_height;
     _msk_width = msk_width;
@@ -130,22 +140,16 @@ int SVMHandleInnerRegions()
 
     status = clSetKernelArg(kernel, 1, sizeof(uint32), &_img_width);
     CHECK_OPENCL_ERROR(status, "clSetKernelArg");
-
-    status = clSetKernelArg(kernel, 2, sizeof(uint32), &_img_height);
-    CHECK_OPENCL_ERROR(status, "clSetKernelArg");
     
-    status = clSetKernelArgSVMPointer(kernel,  3, _msk);
+    status = clSetKernelArgSVMPointer(kernel,  2, _msk);
     CHECK_OPENCL_ERROR(status, "clSetKernelArgSVMPointer");
 
-    status = clSetKernelArg(kernel, 4, sizeof(uint32), &_msk_width);
-    CHECK_OPENCL_ERROR(status, "clSetKernelArg");
-
-    status = clSetKernelArg(kernel, 5, sizeof(uint32), &_msk_height);
+    status = clSetKernelArg(kernel, 3, sizeof(uint32), &_msk_width);
     CHECK_OPENCL_ERROR(status, "clSetKernelArg");
         
-    status = clSetKernelArgSVMPointer(kernel, 6, _out_img);
+    status = clSetKernelArgSVMPointer(kernel, 4, _out_img);
     CHECK_OPENCL_ERROR(status, "clSetKernelArgSVMPointer");
-        
+    
     // TODO play with local range to understand its effect
     size_t global[2];
     global[0] = _inner_width;

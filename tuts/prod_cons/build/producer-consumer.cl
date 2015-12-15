@@ -5,7 +5,7 @@ __constant sampler_t sampler =
 
 __kernel
 void producerKernel(image2d_t __read_only inputImage,
-                    __write_only pipe float* outoutPipe,
+                    __write_only pipe float outputPipe,
 		    __constant float* filter,
 		    int filterWidth)
 {
@@ -30,7 +30,13 @@ void producerKernel(image2d_t __read_only inputImage,
 	}
     }
 
-    write_pipe(outoutPipe, &sum);
+    reserve_id_t res_id;
+    res_id = reserve_write_pipe(outputPipe, 1);
+
+    if(is_valid_reserve_id(res_id))
+    {
+        write_pipe(outputPipe, res_id, 0, &sum);
+    }
 }
 
 __kernel

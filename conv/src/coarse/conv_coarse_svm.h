@@ -12,9 +12,9 @@ global_variable size_t compile_wrkgrp_size[3];
 
 // NOTE: it is assumed that out_img memory is already allocated
 int CoarseSVM_ApplyStencil(real32* in_img, uint32 img_width,
-                         uint32 img_height, real32* msk,
-                         uint32 msk_width, uint32 msk_height,
-                         real32* out_img);
+                           uint32 img_height, real32* msk,
+                           uint32 msk_width, uint32 msk_height,
+                           real32* out_img, bool use_urolled = true);
 
 int AllocateSVMObjects();
 int ClearSVMObject();

@@ -5,7 +5,6 @@
 #include <string>
 #include <iomanip>
 
-#define __CL_ENABLE_EXCEPTIONS
 #include <CL/cl.h>
 
 #include <Utils/bmp-utils.c>
@@ -24,26 +23,26 @@ int main()
     //
     // Cat input case
     //
-    int32 img_width;
-    int32 img_height;
-    real32* in_img = readBmpFloat(inputImagePath, &img_height,
-                                  &img_width);
+    // int32 img_width;
+    // int32 img_height;
+    // real32* in_img = readBmpFloat(inputImagePath, &img_height,
+    //                               &img_width);
 
     //
     // Test matrix case
     //
-    // int32 img_width = 7;
-    // int32 img_height = 7;
-    // real32* in_img = (real32*)malloc(sizeof(real32)*img_width
-    //                                  *img_height);
-    // GenerateTestImage(in_img, img_width, img_height);
+    int32 img_width = 7;
+    int32 img_height = 7;
+    real32* in_img = (real32*)malloc(sizeof(real32)*img_width
+                                     *img_height);
+    GenerateTestImage(in_img, img_width, img_height);
 
     uint32 msk_width = 5;
     uint32 msk_height = 5;
     real32* msk = (real32*)malloc(
         sizeof(real32)*msk_width*msk_height);
-    GenerateGaussianBlurFilter_5X5(msk);
-    //GenerateTestMask(msk, msk_width, msk_height);
+//    GenerateGaussianBlurFilter_5X5(msk);
+    GenerateTestMask(msk, msk_width, msk_height);
 
     //
     // Sequential implementation test
@@ -55,10 +54,61 @@ int main()
     writeBmpFloat(out_img_seq, "cat_seq.bmp", img_height,
                   img_width, inputImagePath);
 
+    std::cout  << std::endl;
+   
     //
     // Coarse non-SVM test
     //
     real32* out_img_coarse = (real32*)malloc(sizeof(real32)*img_width
+                                             *img_height);
+    Coarse_ApplyStencil(in_img, img_width, img_height, msk,
+                        msk_width, msk_height, out_img_coarse,
+                        false);
+    writeBmpFloat(out_img_coarse, "cat_coarse_svm.bmp", img_height,
+                  img_width, inputImagePath);
+
+    if(CompareImages(out_img_seq, out_img_coarse, img_width,
+                     img_height))
+    {
+        std::cout << "TEST PASSED [Coarse (non-SVM)]!"
+                  << std::endl;
+    }
+    else
+    {
+        std::cout << "TEST FAILED [Coarse (non-SVM)]!"
+                  << std::endl;
+    }
+
+    std::cout  << std::endl;
+    
+    //
+    // Coarse SVM test
+    //
+    real32* out_img_coarse_svm = (real32*)malloc(
+        sizeof(real32)*img_width*img_height);
+    CoarseSVM_ApplyStencil(in_img, img_width, img_height, msk,
+                           msk_width, msk_height, out_img_coarse_svm,
+                           false);
+
+    if(CompareImages(out_img_seq, out_img_coarse_svm, img_width,
+                     img_height))
+    {
+        std::cout << "TEST PASSED [Coarse (SVM)]!"
+                  << std::endl;
+    }
+    else
+    {
+        std::cout << "TEST FAILED [Coarse (SVM)]!"
+                  << std::endl;
+    }
+
+    std::cout << std::endl;
+       
+    //
+    // Coarse non-SVM test (unrolled)
+    //
+    free(out_img_coarse);    
+    out_img_coarse = (real32*)malloc(sizeof(real32)*img_width
                                              *img_height);
     Coarse_ApplyStencil(in_img, img_width, img_height, msk,
                         msk_width, msk_height, out_img_coarse);
@@ -69,18 +119,21 @@ int main()
                      img_height))
     {
         std::cout << "TEST PASSED [Coarse (non-SVM)]!"
-                  << std::endl << std::endl;
+                  << std::endl;
     }
     else
     {
         std::cout << "TEST FAILED [Coarse (non-SVM)]!"
-                  << std::endl << std::endl;
+                  << std::endl;
     }
 
+    std::cout  << std::endl;
+    
     //
-    // Coarse SVM test
+    // Coarse SVM test (unrolled)
     //
-    real32* out_img_coarse_svm = (real32*)malloc(
+    free(out_img_coarse_svm);
+    out_img_coarse_svm = (real32*)malloc(
         sizeof(real32)*img_width*img_height);
     CoarseSVM_ApplyStencil(in_img, img_width, img_height, msk,
                            msk_width, msk_height, out_img_coarse_svm);
@@ -89,13 +142,15 @@ int main()
                      img_height))
     {
         std::cout << "TEST PASSED [Coarse (SVM)]!"
-                  << std::endl << std::endl;
+                  << std::endl;
     }
     else
     {
         std::cout << "TEST FAILED [Coarse (SVM)]!"
-                  << std::endl << std::endl;
+                  << std::endl;
     }
+
+    std::cout << std::endl;
 
     
     free(in_img);
