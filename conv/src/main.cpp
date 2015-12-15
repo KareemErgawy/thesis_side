@@ -14,7 +14,7 @@
 #include <coarse/conv_coarse_svm.cpp>
 
 static const char* inputImagePath = "../Images/cat.bmp";
-
+// TODO Generate random large image to compare timings
 int main()
 {
     int status;
@@ -23,26 +23,26 @@ int main()
     //
     // Cat input case
     //
-    // int32 img_width;
-    // int32 img_height;
-    // real32* in_img = readBmpFloat(inputImagePath, &img_height,
-    //                               &img_width);
+    int32 img_width;
+    int32 img_height;
+    real32* in_img = readBmpFloat(inputImagePath, &img_height,
+                                  &img_width);
 
     //
     // Test matrix case
     //
-    int32 img_width = 7;
-    int32 img_height = 7;
-    real32* in_img = (real32*)malloc(sizeof(real32)*img_width
-                                     *img_height);
-    GenerateTestImage(in_img, img_width, img_height);
+    // int32 img_width = 7;
+    // int32 img_height = 7;
+    // real32* in_img = (real32*)malloc(sizeof(real32)*img_width
+    //                                  *img_height);
+    // GenerateTestImage(in_img, img_width, img_height);
 
     uint32 msk_width = 5;
     uint32 msk_height = 5;
     real32* msk = (real32*)malloc(
         sizeof(real32)*msk_width*msk_height);
-//    GenerateGaussianBlurFilter_5X5(msk);
-    GenerateTestMask(msk, msk_width, msk_height);
+    GenerateGaussianBlurFilter_5X5(msk);
+    //GenerateTestMask(msk, msk_width, msk_height);
 
     //
     // Sequential implementation test
@@ -64,7 +64,7 @@ int main()
     Coarse_ApplyStencil(in_img, img_width, img_height, msk,
                         msk_width, msk_height, out_img_coarse,
                         false);
-    writeBmpFloat(out_img_coarse, "cat_coarse_svm.bmp", img_height,
+    writeBmpFloat(out_img_coarse, "cat_coarse.bmp", img_height,
                   img_width, inputImagePath);
 
     if(CompareImages(out_img_seq, out_img_coarse, img_width,
@@ -89,6 +89,8 @@ int main()
     CoarseSVM_ApplyStencil(in_img, img_width, img_height, msk,
                            msk_width, msk_height, out_img_coarse_svm,
                            false);
+    writeBmpFloat(out_img_coarse, "cat_coarse_svm.bmp", img_height,
+                  img_width, inputImagePath);
 
     if(CompareImages(out_img_seq, out_img_coarse_svm, img_width,
                      img_height))
@@ -112,7 +114,8 @@ int main()
                                              *img_height);
     Coarse_ApplyStencil(in_img, img_width, img_height, msk,
                         msk_width, msk_height, out_img_coarse);
-    writeBmpFloat(out_img_coarse, "cat_coarse_svm.bmp", img_height,
+    writeBmpFloat(out_img_coarse, "cat_coarse_unrolled.bmp",
+                  img_height,
                   img_width, inputImagePath);
 
     if(CompareImages(out_img_seq, out_img_coarse, img_width,
@@ -137,6 +140,9 @@ int main()
         sizeof(real32)*img_width*img_height);
     CoarseSVM_ApplyStencil(in_img, img_width, img_height, msk,
                            msk_width, msk_height, out_img_coarse_svm);
+    writeBmpFloat(out_img_coarse, "cat_coarse_svm_unrolled.bmp",
+                  img_height,
+                  img_width, inputImagePath);
 
     if(CompareImages(out_img_seq, out_img_coarse_svm, img_width,
                      img_height))
