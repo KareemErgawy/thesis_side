@@ -38,7 +38,11 @@ typedef float real32;
                   << std::endl;                                     \
         std::cout << "Location : " << __FILE__ << ":" << __LINE__   \
                   << std::endl;                                     \
-        return CL_CALL_FAILURE;                                                   \
+        if(funcName == "clBuildProgram")                            \
+        {                                                           \
+            PrintCompilerError(program, device);                    \
+        }                                                           \
+        return CL_CALL_FAILURE;                                     \
     }                                                               \
     else                                                            \
     {                                                               \
@@ -90,5 +94,7 @@ int SetupKernel(std::string kernel_file_name,
                 std::string kernel_name);
 
 int DisplayDeviceSVMCaps(cl_device_id device);
+
+int PrintCompilerError(cl_program program, cl_device_id device);
 
 #endif

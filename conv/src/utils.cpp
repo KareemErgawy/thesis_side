@@ -231,3 +231,25 @@ int DisplayDeviceSVMCaps(cl_device_id device)
 
     return SUCCESS;
 }
+
+int PrintCompilerError(cl_program program, cl_device_id device)
+{
+    cl_int status;
+    size_t log_size;
+    char* log;
+
+    status = clGetProgramBuildInfo(program, device,
+                                   CL_PROGRAM_BUILD_LOG, 0, NULL,
+                                   &log_size);
+    CHECK_OPENCL_ERROR(status, "clGetProgramBuildInfo");
+
+    log = (char*)malloc(log_size);
+    CHECK_ALLOCATION(log, "log");
+
+    status = clGetProgramBuildInfo(program, device,
+                                   CL_PROGRAM_BUILD_LOG,
+                                   log_size, log, NULL);
+    CHECK_OPENCL_ERROR(status, "clGetProgramBuildInfo");
+
+    std::cout << log << std::endl;
+}

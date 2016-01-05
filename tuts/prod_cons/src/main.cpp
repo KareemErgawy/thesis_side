@@ -1,3 +1,5 @@
+// TODO come back to this later because it didn't work quite well.
+#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
@@ -203,6 +205,17 @@ int main(int argc, char** argv)
                                  0, NULL, NULL);
     check(status);
 
+
+    for(int i=0 ; i<HIST_BINS ; i++)
+    {
+        std::cout << i << ">" << hOutputHistogram[i] << " | ";
+
+        if((i % 10) == 0)
+        {
+            std::cout << std::endl;
+        }
+    }
+    
     clReleaseKernel(producerKernel);
     clReleaseKernel(consumerKernel);
     clReleaseProgram(program);

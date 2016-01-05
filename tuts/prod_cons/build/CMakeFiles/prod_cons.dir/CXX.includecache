@@ -9,6 +9,8 @@
 /home/ergawy/side/tuts/prod_cons/src/Utils/bmp-utils.h
 
 /home/ergawy/side/tuts/prod_cons/src/main.cpp
+iostream
+-
 stdio.h
 -
 stdlib.h

@@ -35,12 +35,15 @@ void producerKernel(image2d_t __read_only inputImage,
 
     if(is_valid_reserve_id(res_id))
     {
-        write_pipe(outputPipe, res_id, 0, &sum);
+        if(write_pipe(outputPipe, res_id, 0, &sum) == 0)
+	{
+	    commit_write_pipe(outputPipe, res_id);
+	}
     }
 }
 
 __kernel
-void consumerKernel(pipe __read_only float* inputPipe,
+void consumerKernel(pipe __read_only float inputPipe,
                     int totalPixels,
 		    __global int* histogram)
 {
@@ -49,7 +52,21 @@ void consumerKernel(pipe __read_only float* inputPipe,
 
     for(pixelCnt=0 ; pixelCnt<totalPixels ; pixelCnt++)
     {
-        while(read_pipe(inputPipe, &pixel));
+        reserve_id_t res_id;
+        while(1)
+	{
+            res_id = reserve_read_pipe(inputPipe, 1);
+
+            if(is_valid_reserve_id(res_id))
+     	    {
+	        if(read_pipe(inputPipe, res_id, 0, &pixel) == 0)
+	        {
+	            commit_read_pipe(inputPipe, res_id);
+		    break;
+	        }
+	    }
+        }
+
 	histogram[(int)pixel]++;
     }
 }
