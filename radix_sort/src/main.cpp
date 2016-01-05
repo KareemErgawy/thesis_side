@@ -1,8 +1,15 @@
 #include <iostream>
-#include <utils.h>
-#include <cmath>
+#include <fstream>
 #include <cstdlib>
 #include <cstring>
+#include <string>
+#include <iomanip>
+#include <cmath>
+
+#include <CL/cl.h>
+
+#include <Utils/bmp-utils.c>
+#include <utils.cpp>
 
 #include <seq/rs_seq.cpp>
 

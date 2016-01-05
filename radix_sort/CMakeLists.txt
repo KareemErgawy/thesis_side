@@ -28,7 +28,7 @@ endif( )
 
 ############################################################################
 
-include_directories( src  ${OPENCL_INCLUDE_DIRS} ../../../../../include/SDKUtil $ENV{AMDAPPSDKROOT}/include/SDKUtil )
+include_directories( ../shared src  ${OPENCL_INCLUDE_DIRS} ../../../../../include/SDKUtil $ENV{AMDAPPSDKROOT}/include/SDKUtil )
 
 #However, the file(GLOB...) allows for wildcard additions:
 file(GLOB SOURCE_FILES "src/main.cpp")
