@@ -1,1 +1,0 @@
-/home/ergawy/side/tuts/conv/build/CMakeFiles/conv.dir

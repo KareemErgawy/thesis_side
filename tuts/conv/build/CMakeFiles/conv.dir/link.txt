@@ -1,1 +1,0 @@
-/usr/bin/c++   -O3 -DNDEBUG    CMakeFiles/conv.dir/src/main.cpp.o CMakeFiles/conv.dir/src/Utils/gold.c.o CMakeFiles/conv.dir/src/Utils/bmp-utils.c.o CMakeFiles/conv.dir/src/Utils/utils2.c.o  -o conv -rdynamic -lOpenCL 
