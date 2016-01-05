@@ -1,7 +1,17 @@
 #if !defined(UTILS_H)
 #define UTILS_H
-
+#include <iostream>
+#include <fstream>
+#include <cstdlib>
+#include <cstring>
+#include <string>
+#include <iomanip>
+#include <cmath>
 #include <stdint.h>
+
+#include <CL/cl.h>
+
+#include <Utils/bmp-utils.c>
 
 #define global_variable static
 #define internal static

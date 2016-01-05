@@ -1,8 +1,9 @@
 #if !defined(RS_SEQ_H)
 #define RS_SEQ_H
 
-// IMPORTANT: for now, input arrays are unsinged integers and the
-// radix is 16
+// IMPORTANT: it is assumed that, input arrays are unsinged integers
+// and the radix is 16
+global_variable uint32  digits = 4;
 global_variable uint32  radix = 16;
 global_variable uint32* counters;
 global_variable uint32* counters_sum;

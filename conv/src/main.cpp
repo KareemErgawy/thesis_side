@@ -1,13 +1,3 @@
-#include <iostream>
-#include <fstream>
-#include <cstdlib>
-#include <cstring>
-#include <string>
-#include <iomanip>
-
-#include <CL/cl.h>
-
-#include <Utils/bmp-utils.c>
 #include <utils.cpp>
 
 #include <seq/conv_seq.cpp>

@@ -62,5 +62,5 @@ void Scatter(uint32* in, uint32 len, uint32* out, uint32 cur_digit)
 
 uint32 CalcDigitValue(uint32 x, uint32 cur_digit)
 {
-    return ((x >> (cur_digit*4)) & 0xF);
+    return ((x >> (cur_digit*digits)) & 0xF);
 }
