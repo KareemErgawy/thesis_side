@@ -60,14 +60,16 @@ int Coarse_ApplyStencil(real32* in_img, uint32 img_width,
                                   msk, 0, NULL, NULL);
     CHECK_OPENCL_ERROR(status, "clEnqueueWriteBuffer");
 
+    cl_kernel kernel;
+    
     if(use_urolled)
     {
         status = SetupKernel("conv_kernel_unrolled.cl",
-                             "conv_kernel");
+                             "conv_kernel", &kernel);
     }
     else
     {
-        status = SetupKernel("conv_kernel.cl", "conv_kernel");
+        status = SetupKernel("conv_kernel.cl", "conv_kernel", &kernel);
     }
     CHECK_ERROR(status, "SetupKernel");
 

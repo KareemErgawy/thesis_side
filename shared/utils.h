@@ -76,7 +76,7 @@ global_variable cl_context       context;
 global_variable cl_command_queue queue;
 
 global_variable cl_program       program;
-global_variable cl_kernel        kernel;
+//global_variable cl_kernel        kernel;
 
 void Print2DArray(std::string message, real32* array, uint32 width,
                   uint32 height);
@@ -101,7 +101,7 @@ void Clear2DArray(real32* array, uint32 width, uint32 height,
 int SetupOpenCL();
 
 int SetupKernel(std::string kernel_file_name,
-                std::string kernel_name);
+                std::string kernel_name, cl_kernel* kernel_ptr);
 
 int DisplayDeviceSVMCaps(cl_device_id device);
 

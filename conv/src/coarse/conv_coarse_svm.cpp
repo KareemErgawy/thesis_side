@@ -131,8 +131,9 @@ int SVMHandleAllBoundries(real32* in_img, real32* msk,
 int SVMHandleInnerRegions()
 {
     int status;
-
-    status = SetupKernel("conv_kernel.cl", "conv_kernel");
+    cl_kernel kernel;
+    
+    status = SetupKernel("conv_kernel.cl", "conv_kernel", &kernel);
     CHECK_ERROR(status, "SetupKernel");
 
     status = clSetKernelArgSVMPointer(kernel, 0, _in_img);

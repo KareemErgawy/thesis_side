@@ -1,6 +1,6 @@
 #include <seq/rs_seq.h>
 
-void RadixSort(uint32* in, uint32 len, uint32 num_digits)
+void RadixSort_Seq(uint32* in, uint32 len, uint32 num_digits)
 {
     counters = (uint32*) malloc(sizeof(uint32) * radix);
     counters_sum = (uint32*) malloc(sizeof(uint32) * radix);
@@ -18,6 +18,7 @@ void RadixSort(uint32* in, uint32 len, uint32 num_digits)
     free(out);
 }
 
+internal
 void CountingSort(uint32* in, uint32 len, uint32 cur_digit)
 {
     Histogram(in, len, cur_digit);
@@ -25,6 +26,7 @@ void CountingSort(uint32* in, uint32 len, uint32 cur_digit)
     Scatter(in, len, out, cur_digit);
 }
 
+internal
 void Histogram(uint32* in, uint32 len, uint32 cur_digit)
 {
     for(uint32 i=0 ; i<radix ; i++)
@@ -39,6 +41,7 @@ void Histogram(uint32* in, uint32 len, uint32 cur_digit)
     }
 }
 
+internal
 void Rank()
 {
     counters_sum[0] = counters[0];
@@ -49,6 +52,7 @@ void Rank()
     }
 }
 
+internal
 void Scatter(uint32* in, uint32 len, uint32* out, uint32 cur_digit)
 {
     for(int32 i=len-1 ; i>=0 ; i--)
@@ -60,6 +64,7 @@ void Scatter(uint32* in, uint32 len, uint32* out, uint32 cur_digit)
     }
 }
 
+internal
 uint32 CalcDigitValue(uint32 x, uint32 cur_digit)
 {
     return ((x >> (cur_digit*digits)) & 0xF);

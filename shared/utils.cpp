@@ -170,7 +170,8 @@ int SetupOpenCL()
     return SUCCESS;
 }
 
-int SetupKernel(std::string kernel_file_name, std::string kernel_name)
+int SetupKernel(std::string kernel_file_name, std::string kernel_name,
+                cl_kernel* kernel_ptr)
 {
     cl_int status;
     std::ifstream source_file(kernel_file_name.c_str());
@@ -191,7 +192,7 @@ int SetupKernel(std::string kernel_file_name, std::string kernel_name)
                             NULL, NULL);
     CHECK_OPENCL_ERROR(status, "clBuildProgram");
 
-    kernel = clCreateKernel(program, kernel_name.c_str(), &status);
+    *kernel_ptr = clCreateKernel(program, kernel_name.c_str(), &status);
     CHECK_OPENCL_ERROR(status, "clCreateKernel");
     
     return SUCCESS;
