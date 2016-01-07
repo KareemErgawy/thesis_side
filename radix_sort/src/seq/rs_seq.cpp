@@ -10,8 +10,6 @@ void RadixSort_Seq(uint32* in, uint32 len, uint32 num_digits)
     {
         CountingSort(in, len, cur_digit);
     }
-
-    memcpy(in, out, sizeof(uint32) * len);
     
     free(counters);
     free(counters_sum);
@@ -24,6 +22,7 @@ void CountingSort(uint32* in, uint32 len, uint32 cur_digit)
     Histogram(in, len, cur_digit);
     Rank();
     Scatter(in, len, out, cur_digit);
+    memcpy(in, out, sizeof(uint32) * len);
 }
 
 internal
@@ -50,6 +49,7 @@ void Rank()
     {
         counters_sum[i] = counters[i] + counters_sum[i-1];
     }
+    
 }
 
 internal

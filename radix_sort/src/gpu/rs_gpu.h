@@ -7,6 +7,8 @@ global_variable cl_mem temp_keys_buf;
 
 void RadixSort_GPU(uint32* in, uint32 len, uint32 num_digits);
 
-void CreateBuffers();
+int CreateBuffers(uint32* keys, uint32 len);
+
+int LocalSort(uint32 start_bit, uint32* keys, uint32* temp_keys, uint32 len);
 
 #endif

@@ -14,10 +14,18 @@ void RadixSort_GPU(uint32* keys, uint32 len, uint32 num_digits)
     for(uint32 cur_digit=0 ; cur_digit<num_digits ; cur_digit++)
     {
         uint32 start_bit = cur_digit * digits;
+        LocalSort(start_bit, keys, temp_keys, len);
     }
+
+    for(uint32 i=0 ; i<len ; i++)
+    {
+        std::cout << temp_keys[i] << ",";
+    }
+
+    std::cout << std::endl;
 }
 
-void CreateBuffers(uint32* keys, uint32 len)
+int CreateBuffers(uint32* keys, uint32 len)
 {
     cl_int status;
     
@@ -32,8 +40,10 @@ void CreateBuffers(uint32* keys, uint32 len)
     CHECK_OPENCL_ERROR(status, "clCreateBuffer");
 }
 
-void LocalSort(uint32 start_bit, uint32* temp_keys)
+int LocalSort(uint32 start_bit, uint32* keys, uint32* temp_keys, uint32 len)
 {
+    cl_int status;
+
     status = clEnqueueWriteBuffer(queue, keys_buf, CL_TRUE, 0,
                                   len*sizeof(uint32),
                                   keys, 0, NULL, NULL);
@@ -64,8 +74,8 @@ void LocalSort(uint32 start_bit, uint32* temp_keys)
     size_t global = len;
     size_t local = 256;
 
-    status = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, global,
-                                    local, 0, NULL, NULL);
+    status = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global,
+                                    &local, 0, NULL, NULL);
     CHECK_OPENCL_ERROR(status, "clEnqueueNDRangeKernel");
 
     status = clEnqueueReadBuffer(queue, temp_keys_buf, CL_TRUE, 0,
