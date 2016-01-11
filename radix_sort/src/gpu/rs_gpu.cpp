@@ -30,7 +30,8 @@ void RadixSort_GPU(uint32* keys, uint32 len, uint32 num_digits)
 int CreateBuffers(uint32* keys, uint32 len)
 {
     cl_int status;
-    uint32 m = radix * (((len - 1) / tile_size) + 1);
+    uint32 num_tiles = (((len - 1) / tile_size) + 1);
+    uint32 m = radix * num_tiles;
     
     keys_buf = clCreateBuffer(context, CL_MEM_READ_ONLY,
                             len*sizeof(uint32),
@@ -55,6 +56,11 @@ int CreateBuffers(uint32* keys, uint32 len)
     counters_sum_buf = clCreateBuffer(context, CL_MEM_READ_WRITE,
                                    m*sizeof(uint32),
                                    NULL, &status);
+    CHECK_OPENCL_ERROR(status, "clCreateBuffer");
+
+    aux_sum_buf = clCreateBuffer(context, CL_MEM_READ_WRITE,
+                                 num_tiles*sizeof(uint32),
+                                 NULL, &status);
     CHECK_OPENCL_ERROR(status, "clCreateBuffer");
 }
 
@@ -159,19 +165,50 @@ int Histogram(uint32 start_bit, uint32* keys, uint32 len)
 
     uint32 m = radix * (((len - 1) / tile_size) + 1);
 
-    // uint32* temp = (uint32*) malloc(sizeof(uint32) * m);
+    uint32* temp = (uint32*) malloc(sizeof(uint32) * m);
 
-    // status = clEnqueueReadBuffer(queue, tile_offsets_buf, CL_TRUE, 0,
-    //                              m*sizeof(uint32), temp,
-    //                              0, NULL, NULL);
-    // CHECK_OPENCL_ERROR(status, "clEnqueueReadBuffer");
+    status = clEnqueueReadBuffer(queue, tile_offsets_buf, CL_TRUE, 0,
+                                 m*sizeof(uint32), temp,
+                                 0, NULL, NULL);
+    CHECK_OPENCL_ERROR(status, "clEnqueueReadBuffer");
 
-    // for(uint32 i=0 ; i<m ; i++)
-    // {
-    //     std::cout << temp[i] << ", ";
-    // }
+    std::cout << "tile offsets: " << std::endl;
+    
+    for(uint32 i=0 ; i<m ; i++)
+    {
+        std::cout << temp[i] << ", ";
+    }
 
-    // std::cout << std::endl;
+    std::cout << std::endl;
 
-    // free(temp);
+    free(temp);
+}
+
+int Rank()
+{
+    cl_int status;
+
+    cl_kernel kernel;
+    status = SetupKernel("InitAuxSum_Kernel_Kernel", &kernel);
+    CHECK_ERROR(status, "SetupKernel");
+    
+    int arg_idx = 0;
+    status = clSetKernelArg(kernel, arg_idx++, sizeof(cl_mem),
+                            &counters_sum_buf);
+    CHECK_OPENCL_ERROR(status, "clSetKernelArg");
+
+    status = clSetKernelArg(kernel, arg_idx++, sizeof(cl_mem),
+                            &counters_buf);
+    CHECK_OPENCL_ERROR(status, "clSetKernelArg");    
+
+    status = clSetKernelArg(kernel, arg_idx++, sizeof(cl_mem),
+                            &aux_sum_buf);
+    CHECK_OPENCL_ERROR(status, "clSetKernelArg");
+
+    size_t global = radix * (((len - 1) / tile_size) + 1);
+    size_t local = 8;//tile_size;
+
+    status = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global,
+                                    &local, 0, NULL, NULL);
+    CHECK_OPENCL_ERROR(status, "clEnqueueNDRangeKernel");    
 }

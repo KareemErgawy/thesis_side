@@ -113,3 +113,38 @@ __kernel void Histogram_Kernel(__global uint* tile_offsets,
 	    = local_counters[local_id];
     }
 }
+
+__kernel InitAuxSum_Kernel(__global uint* counters_sum,
+                           __global uint* counters,
+		           __global uint* aux_sum)
+{
+    __local local_counters[256];
+    size_t local_id = get_local_id(0);
+    size_t global_id = get_global_id(0);
+    size_t group_id = get_group_id(0);
+
+    local_counters[local_id] = counters[global_id];
+
+    work_group_barrier(CLK_LOCAL_MEM_FENCE);
+    
+    counters_sum[global_id] =  work_group_scan_exclusive_add(
+                                   local_counters[local_id]);
+
+    work_group_barrier(CLK_LOCAL_MEM_FENCE);
+
+    if(local_id == (get_local_size(0) - 1))
+    {
+        aux_sum[group_id] = counters_sum[global_id]
+	                    + local_counters[local_id];
+    }
+}
+
+__kernel AddAuxSum_Kernel(__global uint* counters_sum,
+                          __global uint* aux_sum)
+{
+    size_t group_id = get_group_id(0);
+    if(group_id > 0)
+    {
+        counters_sum[get_global_id(0)] = aux_sum[group_id - 1];
+    }
+}
