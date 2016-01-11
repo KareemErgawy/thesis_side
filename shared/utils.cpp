@@ -197,7 +197,16 @@ int SetupKernel(std::string kernel_file_name, std::string kernel_name,
     
     return SUCCESS;
 }
+
+int SetupKernel(std::string kernel_name, cl_kernel* kernel_ptr)
+{
+    cl_int status;
+    *kernel_ptr = clCreateKernel(program, kernel_name.c_str(), &status);
+    CHECK_OPENCL_ERROR(status, "clCreateKernel");
     
+    return SUCCESS;
+}
+
 int DisplayDeviceSVMCaps(cl_device_id device)
 {
     cl_int status;

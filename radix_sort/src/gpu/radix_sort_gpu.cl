@@ -31,8 +31,8 @@ __kernel void LocalSort_Kernel(__global uint* temp_keys,
 {
     __local uint local_keys[256];
 
-    int local_id = get_local_id(0);
-    int global_id = get_global_id(0);
+    size_t local_id = get_local_id(0);
+    size_t global_id = get_global_id(0);
 
     local_keys[local_id] = keys[global_id];
     work_group_barrier(CLK_LOCAL_MEM_FENCE);
@@ -50,4 +50,66 @@ __kernel void LocalSort_Kernel(__global uint* temp_keys,
     temp_keys[global_id] = local_keys[local_id];
     // TODO: is neccessary?
     work_group_barrier(CLK_LOCAL_MEM_FENCE);
+}
+
+uint CalcDigitValue(uint x, uint cur_digit, digits)
+{
+    return ((x >> (cur_digit*digits)) & 0xF);
+}
+
+__kernel void Histogram_Kernel(__global uint* tile_offsets,
+                               __global uint* counters,
+			       __global uint* temp_keys,
+			       uint start_bit, uint digits, uint radix,
+			       uint tile_size, uint num_tiles)
+{
+    __local uint local_digit_vals[256];
+    __local uint local_tile_offsets[256];
+    __local uint local_counters[256];
+    __local uint local_next[256];
+
+    size_t local_id = get_local_id(0);
+    size_t global_id = get_global_id(0);
+    size_t group_id = get_group_id(0);
+
+    local_digit_vals[local_id] = CalcDigitValue(temp_keys[global_id],
+                                               start_bit, digits);
+    work_group_barrier(CLK_LOCAL_MEM_FENCE);
+    local_next[local_id] = 0;
+    local_tile_offsets[local_id] = 0;
+    	
+    if(local_id > 0)
+    {
+        if(local_digit_vals[local_id] != local_digit_vals[local_id-1])
+	{
+	    local_next[local_digit_vals[local_id-1]]
+	        = local_digit_vals[local_id];
+	    local_tile_offsets[local_digit_vals[local_id]]
+	        = local_id;
+	}
+    }
+
+    work_group_barrier(CLK_LOCAL_MEM_FENCE);
+
+    if(local_id < (radix - 1))
+    {
+        local_counters[local_id]
+	    = local_tile_offsets[local_next[local_id]]
+	      - local_tile_offsets[local_id];
+    }
+    else if(local_id == (radix - 1))
+    {
+        local_counters[local_id] = get_local_size(0)
+	                           - local_tile_offsets[local_id];
+    }
+
+    work_group_barrier(CLK_LOCAL_MEM_FENCE);
+
+    if(local_id < radix)
+    {
+        tile_offsets[(radix * group_id) + local_id]
+	    = local_tile_offsets[local_id];
+	counters[(num_tiles * local_id) + group_id]
+	    = local_counters[local_id];
+    }
 }

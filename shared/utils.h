@@ -103,6 +103,8 @@ int SetupOpenCL();
 int SetupKernel(std::string kernel_file_name,
                 std::string kernel_name, cl_kernel* kernel_ptr);
 
+int SetupKernel(std::string kernel_name, cl_kernel* kernel_ptr);
+
 int DisplayDeviceSVMCaps(cl_device_id device);
 
 int PrintCompilerError(cl_program program, cl_device_id device);
