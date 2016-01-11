@@ -3,23 +3,23 @@
 void RadixSort_GPU(uint32* keys, uint32 len, uint32 num_digits)
 {
     CreateBuffers(keys, len);
-
-    uint32* temp_keys = (uint32*) malloc(len*sizeof(uint32));
     
     // TODO for now, every kernel is called separately with its
     // inputs/outputs passed from/to the host. try to avoid that
 
     // NOTE: reads and writes needed by evey kernel are done at the
     // kernel invokation function below (see LocalSort for example)
+
     for(uint32 cur_digit=0 ; cur_digit<num_digits ; cur_digit++)
     {
         uint32 start_bit = cur_digit * digits;
-        LocalSort(start_bit, keys, temp_keys, len);
+        std::cout << start_bit << std::endl;
+        LocalSort(start_bit, keys, len);
     }
-
+    
     for(uint32 i=0 ; i<len ; i++)
     {
-        std::cout << temp_keys[i] << ",";
+        std::cout << keys[i] << ", ";
     }
 
     std::cout << std::endl;
@@ -28,6 +28,7 @@ void RadixSort_GPU(uint32* keys, uint32 len, uint32 num_digits)
 int CreateBuffers(uint32* keys, uint32 len)
 {
     cl_int status;
+    uint32 m = radix * (((len - 1) / 256)) + 1;
     
     keys_buf = clCreateBuffer(context, CL_MEM_READ_ONLY,
                             len*sizeof(uint32),
@@ -38,9 +39,24 @@ int CreateBuffers(uint32* keys, uint32 len)
                                    len*sizeof(uint32),
                                    NULL, &status);
     CHECK_OPENCL_ERROR(status, "clCreateBuffer");
+
+    tile_offsets_buf = clCreateBuffer(context, CL_MEM_READ_WRITE,
+                                   m*sizeof(uint32),
+                                   NULL, &status);
+    CHECK_OPENCL_ERROR(status, "clCreateBuffer");
+    
+    counters_buf = clCreateBuffer(context, CL_MEM_READ_WRITE,
+                                   m*sizeof(uint32),
+                                   NULL, &status);
+    CHECK_OPENCL_ERROR(status, "clCreateBuffer");
+
+    counters_sum_buf = clCreateBuffer(context, CL_MEM_READ_WRITE,
+                                   m*sizeof(uint32),
+                                   NULL, &status);
+    CHECK_OPENCL_ERROR(status, "clCreateBuffer");
 }
 
-int LocalSort(uint32 start_bit, uint32* keys, uint32* temp_keys, uint32 len)
+int LocalSort(uint32 start_bit, uint32* keys, uint32 len)
 {
     cl_int status;
 
@@ -79,7 +95,7 @@ int LocalSort(uint32 start_bit, uint32* keys, uint32* temp_keys, uint32 len)
     CHECK_OPENCL_ERROR(status, "clEnqueueNDRangeKernel");
 
     status = clEnqueueReadBuffer(queue, temp_keys_buf, CL_TRUE, 0,
-                                 len*sizeof(uint32), temp_keys,
+                                 len*sizeof(uint32), keys,
                                  0, NULL, NULL);
     CHECK_OPENCL_ERROR(status, "clEnqueueReadBuffer");
 }
