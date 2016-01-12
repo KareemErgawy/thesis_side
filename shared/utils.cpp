@@ -263,3 +263,37 @@ int PrintCompilerError(cl_program program, cl_device_id device)
 
     std::cout << log << std::endl;
 }
+
+int PrintBufferContents_Uint32(cl_mem buf, uint32 size, std::string name,
+                               uint32 line_size)
+{
+    cl_int status;
+    
+    uint32* temp = (uint32*) malloc(size * sizeof(uint32));
+
+    status = clEnqueueReadBuffer(queue, buf, CL_TRUE, 0,
+                                 size * sizeof(uint32), temp,
+                                 0, NULL, NULL);
+    CHECK_OPENCL_ERROR(status, "clEnqueueReadBuffer");
+
+    std::cout << "BUFFER: " << name << std::endl;
+    
+    for(uint32 i=0 ; i<size ; i++)
+    {
+        std::cout << temp[i];
+
+        if(((i + 1) % line_size) == 0)
+        {
+            std::cout << std::endl;
+        }
+        else
+        {
+            std::cout << ",";
+        }
+    }
+
+    std::cout << std::endl;
+
+    free(temp);
+
+}

@@ -109,4 +109,7 @@ int DisplayDeviceSVMCaps(cl_device_id device);
 
 int PrintCompilerError(cl_program program, cl_device_id device);
 
+int PrintBufferContents_Uint32(cl_mem buf, uint32 size,
+                               std::string name, uint32 line_size);
+
 #endif

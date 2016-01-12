@@ -19,4 +19,5 @@ int LocalSort(uint32 start_bit, uint32* keys, uint32 len);
 
 int Histogram(uint32 start_bit, uint32* keys, uint32 len);
 
+int Rank(uint32 len);
 #endif

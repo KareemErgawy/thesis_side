@@ -11,10 +11,10 @@ int main()
     CHECK_ERROR(status, "SetupOpenCL");
     
     // TODO dynamically discover number of digits
-    uint32 len = 16;
+    uint32 len = 32;
     uint32* test = (uint32*) malloc(sizeof(uint32) * len);
 
-   std::cout << std::hex;
+    //   std::cout << std::oct;
     
     for(uint32 i=0 ; i<len ; i++)
     {
