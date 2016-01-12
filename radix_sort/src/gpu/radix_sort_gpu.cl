@@ -1,3 +1,6 @@
+// TODO some params might be unneccessary like tile_size and num_tiles,
+// check and remove that
+
 // See http://http.developer.nvidia.com/GPUGems3/gpugems3_ch39.html
 void Split(__local uint local_keys[256], uint cur_bit, int local_id)
 {
@@ -122,13 +125,12 @@ __kernel void InitAuxSum_Kernel(__global uint* counters_sum,
     size_t local_id = get_local_id(0);
     size_t global_id = get_global_id(0);
     size_t group_id = get_group_id(0);
-    size_t linear_id = (local_id * get_num_groups(0)) + group_id;
 
-    local_counters[local_id] = counters[linear_id];
+    local_counters[local_id] = counters[global_id];
 
     work_group_barrier(CLK_LOCAL_MEM_FENCE);
     
-    counters_sum[linear_id] =  work_group_scan_exclusive_add
+    counters_sum[global_id] =  work_group_scan_exclusive_add
                                    (local_counters[local_id]);
 
     work_group_barrier(CLK_LOCAL_MEM_FENCE);
@@ -136,7 +138,7 @@ __kernel void InitAuxSum_Kernel(__global uint* counters_sum,
     // TODO instead of that if, we can do that on the host
     if(local_id == (get_local_size(0) - 1))
     {
-        aux_sum[group_id] = counters_sum[linear_id]
+        aux_sum[group_id] = counters_sum[global_id]
 	                    + local_counters[local_id];
     }
 }
@@ -149,9 +151,42 @@ __kernel void AddAuxSum_Kernel(__global uint* counters_sum,
     if(group_id > 0)
     {
         size_t local_id = get_local_id(0);
+	size_t global_id = get_global_id(0);
 	size_t group_id = get_group_id(0);
-        size_t linear_id = (local_id * get_num_groups(0)) + group_id;
-        counters_sum[linear_id] = counters_sum[linear_id]
+        counters_sum[global_id] = counters_sum[global_id]
 	                          + aux_sum[group_id - 1];
     }
+}
+
+__kernel void Scatter(__global uint* keys, __global uint* temp_keys,
+                      __global uint* tile_offsets, __global counters_sum,
+		      uint start_bit, uint digits, uint radix,
+		      uint tile_size, uint num_tiles)
+{
+    __local uint local_temp_keys[256];
+    __local uint local_tile_offsets[256];
+    __local uint local_counters_sum[256];
+    
+    size_t local_id = get_local_id(0);
+    size_t global_id = get_global_id(0);
+    size_t group_id = get_group_id(0);
+
+    local_temp_keys[local_id] = temp_keys[global_id];
+
+    if(local_id < radix)
+    {
+        local_tile_offsets[local_id] = tile_offsets[(radix * group_id)
+	                                            + local_id];
+	local_counters_sum[local_id] = counters_sum[(num_tiles
+	                                             * local_id)
+						    + group_id];
+    }
+
+    work_group_barrier(CLK_LOCAL_MEM_FENCE);
+
+    uint digit_val = CalcDigitValue(local_temp_keys[local_id], start_bit,
+                                    digits);
+    uint global_out_idx = local_counters_sum[digit_val] + local_id
+                          - local_tile_offsets[digit_val];
+    keys[global_out_idx] = local_temp_keys[local_id];
 }

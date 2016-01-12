@@ -178,13 +178,14 @@ int Rank(uint32 len)
 
     uint32 num_tiles = (((len - 1) / tile_size) + 1);
     size_t global = radix * num_tiles;
+    // TODO make this bigger (256)
     size_t local = radix;
 
     uint32 m = radix * (((len - 1) / tile_size) + 1);
     PrintBufferContents_Uint32(counters_buf, m, "counters",
                                num_tiles);
     
-    std::cout << "global: " << global << ", local: " << tile_size
+    std::cout << "global: " << global << ", local: " << local
               << std::endl;
     
     status = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global,
@@ -194,6 +195,9 @@ int Rank(uint32 len)
     PrintBufferContents_Uint32(aux_sum_buf, num_tiles, "aux sum",
                                num_tiles);
 
+    PrintBufferContents_Uint32(counters_sum_buf, m, "counters_sum",
+                               num_tiles);
+    
     status = SetupKernel("AddAuxSum_Kernel", &kernel);
     CHECK_ERROR(status, "SetupKernel");
 
@@ -212,5 +216,9 @@ int Rank(uint32 len)
 
     PrintBufferContents_Uint32(counters_sum_buf, m, "counters_sum",
                                num_tiles);
+}
 
+int Scatter()
+{
+    
 }

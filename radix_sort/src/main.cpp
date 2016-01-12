@@ -14,7 +14,7 @@ int main()
     uint32 len = 32;
     uint32* test = (uint32*) malloc(sizeof(uint32) * len);
 
-    //   std::cout << std::oct;
+    //std::cout << std::oct;
     
     for(uint32 i=0 ; i<len ; i++)
     {
