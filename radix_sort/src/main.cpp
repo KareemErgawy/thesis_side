@@ -14,7 +14,7 @@ int main()
     uint32 len = 32;
     uint32* test = (uint32*) malloc(sizeof(uint32) * len);
 
-    //std::cout << std::oct;
+    std::cout << std::hex;
     
     for(uint32 i=0 ; i<len ; i++)
     {
@@ -24,17 +24,17 @@ int main()
 
     std::cout << std::endl << "***************************"
               << std::endl << std::endl;
-    
-    // RadixSort_Seq(test, len, 2);
+/*    
+    RadixSort_Seq(test, len, 2);
 
-    // for(uint32 i=0 ; i<len ; i++)
-    // {
-    //     std::cout << test[i] << ", ";
-    // }
+    for(uint32 i=0 ; i<len ; i++)
+    {
+        std::cout << test[i] << ", ";
+    }
 
-    // std::cout << std::endl;
-    
-    RadixSort_GPU(test, len, 2);
+    std::cout << std::endl;
+*/    
+    RadixSort_GPU(test, len, 3);
     
     free(test);
     

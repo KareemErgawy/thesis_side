@@ -55,9 +55,9 @@ __kernel void LocalSort_Kernel(__global uint* temp_keys,
     work_group_barrier(CLK_LOCAL_MEM_FENCE);
 }
 
-uint CalcDigitValue(uint x, uint cur_digit, digits)
+uint CalcDigitValue(uint x, uint cur_digit, uint digits)
 {
-    return ((x >> (cur_digit*digits)) & 0x7);
+    return ((x >> cur_digit) & 0xF);
 }
 
 __kernel void Histogram_Kernel(__global uint* tile_offsets,
@@ -78,6 +78,7 @@ __kernel void Histogram_Kernel(__global uint* tile_offsets,
     local_digit_vals[local_id] = CalcDigitValue(temp_keys[global_id],
                                                start_bit, digits);
     work_group_barrier(CLK_LOCAL_MEM_FENCE);
+
     local_next[local_id] = 0;
     local_tile_offsets[local_id] = 0;
     	
@@ -93,14 +94,17 @@ __kernel void Histogram_Kernel(__global uint* tile_offsets,
     }
 
     work_group_barrier(CLK_LOCAL_MEM_FENCE);
-
-    if(local_id < (radix - 1))
+    local_counters[local_id] = 0;
+    uint max_digit = local_digit_vals[get_local_size(0)-1];
+    
+    if(local_id < max_digit/*(radix - 1)*/)
     {
-        local_counters[local_id]
-	    = local_tile_offsets[local_next[local_id]]
+        local_counters[local_id] =
+	      local_tile_offsets[local_next[local_id]]
 	      - local_tile_offsets[local_id];
     }
-    else if(local_id == (radix - 1))
+    else if(local_id == max_digit/*(radix - 1)
+            && (local_tile_offsets[local_id] > 0)*/)
     {
         local_counters[local_id] = get_local_size(0)
 	                           - local_tile_offsets[local_id];
@@ -112,6 +116,7 @@ __kernel void Histogram_Kernel(__global uint* tile_offsets,
     {
         tile_offsets[(radix * group_id) + local_id]
 	    = local_tile_offsets[local_id];
+
 	counters[(num_tiles * local_id) + group_id]
 	    = local_counters[local_id];
     }
@@ -121,7 +126,7 @@ __kernel void InitAuxSum_Kernel(__global uint* counters_sum,
                            __global uint* counters,
 		           __global uint* aux_sum)
 {
-    __local local_counters[256];
+    __local uint local_counters[256];
     size_t local_id = get_local_id(0);
     size_t global_id = get_global_id(0);
     size_t group_id = get_group_id(0);
@@ -158,10 +163,12 @@ __kernel void AddAuxSum_Kernel(__global uint* counters_sum,
     }
 }
 
-__kernel void Scatter(__global uint* keys, __global uint* temp_keys,
-                      __global uint* tile_offsets, __global counters_sum,
-		      uint start_bit, uint digits, uint radix,
-		      uint tile_size, uint num_tiles)
+__kernel void Scatter_Kernel(__global uint* keys,
+                             __global uint* temp_keys,
+                             __global uint* tile_offsets,
+		             __global uint* counters_sum,
+		             uint start_bit, uint digits, uint radix,
+		             uint tile_size, uint num_tiles)
 {
     __local uint local_temp_keys[256];
     __local uint local_tile_offsets[256];
@@ -188,5 +195,12 @@ __kernel void Scatter(__global uint* keys, __global uint* temp_keys,
                                     digits);
     uint global_out_idx = local_counters_sum[digit_val] + local_id
                           - local_tile_offsets[digit_val];
+    if(start_bit == 9)
+    {
+    keys[global_id] = local_id;//local_tile_offsets[digit_val];
+    }
+    else
+    {
     keys[global_out_idx] = local_temp_keys[local_id];
+    }
 }
