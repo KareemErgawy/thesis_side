@@ -195,12 +195,5 @@ __kernel void Scatter_Kernel(__global uint* keys,
                                     digits);
     uint global_out_idx = local_counters_sum[digit_val] + local_id
                           - local_tile_offsets[digit_val];
-    if(start_bit == 9)
-    {
-    keys[global_id] = local_id;//local_tile_offsets[digit_val];
-    }
-    else
-    {
     keys[global_out_idx] = local_temp_keys[local_id];
-    }
 }
