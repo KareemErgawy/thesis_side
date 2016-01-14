@@ -1,8 +1,24 @@
 #include <utils.cpp>
 
-#include <common_defs.h>
+#include <common_defs.cpp>
 #include <seq/rs_seq.cpp>
 #include <gpu/rs_gpu.cpp>
+
+#define ReportResult(arr_name, test_name)               \
+    if(TestIfArrayIsSorted(arr_name, len))              \
+    {                                                   \
+        std::cout << "~~~~~~~~~~~~~~" << std::endl      \
+                  << "TEST PASSED [" #test_name"]!"     \
+                  << std::endl                          \
+                  << "~~~~~~~~~~~~~~" << std::endl;     \
+    }                                                   \
+    else                                                \
+    {                                                   \
+        std::cout << "~~~~~~~~~~~~~~" << std::endl      \
+                  << "TEST FAILED [" #test_name "]!"    \
+                  << std::endl                          \
+                  << "~~~~~~~~~~~~~~" << std::endl;     \
+    }
 
 int main()
 {
@@ -10,33 +26,34 @@ int main()
     status = SetupOpenCL();
     CHECK_ERROR(status, "SetupOpenCL");
     
-    // TODO dynamically discover number of digits
-    uint32 len = 32;
-    uint32* test = (uint32*) malloc(sizeof(uint32) * len);
+    uint32 len = 4096;
+    uint32* input = (uint32*) malloc(sizeof(uint32) * len);
+    GenerateTestArray(input, len);
 
-    std::cout << std::hex;
+    uint32 num_digits = FindNumDigits(input, len);
+
+    // NOTE the input is copied to different other arrays to test the
+    // same input on differnt implmentations
+
+    //
+    // Sequential implementation test
+    //
+    uint32* seq_output = (uint32*) malloc(sizeof(uint32) * len);
+    memcpy(seq_output, input, sizeof(uint32) * len);
+    Seq_RadixSort(seq_output, len, num_digits);
+    ReportResult(seq_output, Sequential CPU);
     
-    for(uint32 i=0 ; i<len ; i++)
-    {
-        test[i] = rand() % 100;
-        std::cout << test[i] << ", ";
-    }
+    //
+    // GPU implementation test
+    //
+    uint32* gpu_output = (uint32*) malloc(sizeof(uint32) * len);
+    memcpy(gpu_output, input, sizeof(uint32) * len);
+    GPU_RadixSort(gpu_output, len, num_digits);
+    ReportResult(gpu_output, GPU);
 
-    std::cout << std::endl << "***************************"
-              << std::endl << std::endl;
-/*    
-    RadixSort_Seq(test, len, 2);
-
-    for(uint32 i=0 ; i<len ; i++)
-    {
-        std::cout << test[i] << ", ";
-    }
-
-    std::cout << std::endl;
-*/    
-    RadixSort_GPU(test, len, 3);
-    
-    free(test);
+    free(input);
+    free(seq_output);
+    free(gpu_output);
     
     return 0;
 }

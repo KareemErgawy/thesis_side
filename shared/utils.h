@@ -78,6 +78,9 @@ global_variable cl_command_queue queue;
 global_variable cl_program       program;
 //global_variable cl_kernel        kernel;
 
+//
+// Image related util functions
+//
 void Print2DArray(std::string message, real32* array, uint32 width,
                   uint32 height);
 
@@ -94,6 +97,13 @@ bool CompareImages(real32* img1, real32* img2, uint32 img_width,
 
 void Clear2DArray(real32* array, uint32 width, uint32 height,
                   real32 value);
+
+//
+// Integer 1D arrays related functions (used in radix sort only so far)
+//
+void GenerateTestArray(uint32* array, uint32 len);
+
+bool CompareArrays(uint32* a1, uint32* a2, uint32 len);
 
 //
 // OpenCL util functions

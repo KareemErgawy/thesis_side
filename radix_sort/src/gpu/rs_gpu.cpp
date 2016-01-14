@@ -1,8 +1,9 @@
 #include "gpu/rs_gpu.h"
 
-int RadixSort_GPU(uint32* keys, uint32 len, uint32 num_digits)
+int GPU_RadixSort(uint32* keys, uint32 len, uint32 num_digits)
 {
-    tile_size = 16;
+//    std::cout << std::hex;
+    tile_size = 256;
     CreateBuffers(keys, len);
     
     // TODO for now, every kernel is called separately with its
@@ -13,27 +14,24 @@ int RadixSort_GPU(uint32* keys, uint32 len, uint32 num_digits)
                                   len*sizeof(uint32),
                                   keys, 0, NULL, NULL);
     CHECK_OPENCL_ERROR(status, "clEnqueueWriteBuffer");
+
+//    PrintBufferContents_Uint32(keys_buf, len, "keys", 16);
     
     for(uint32 cur_digit=0 ; cur_digit<num_digits ; cur_digit++)
     {
-        uint32 start_bit = cur_digit * digits;
-//        std::cout << "start bit: " << start_bit << std::endl;
+        uint32 start_bit = cur_digit * bits_per_digit;
+        //std::cout << "start bit: " << start_bit << std::endl;
         LocalSort(start_bit, keys, len);
         Histogram(start_bit, keys, len);
         Rank(len);
         Scatter(start_bit, len);
-        // cl_mem temp;
-        // temp = keys_buf;
-        // keys_buf = temp_keys_buf;
-        // temp_keys_buf = temp;
     }
-    
-    // for(uint32 i=0 ; i<len ; i++)
-    // {
-    //     std::cout << keys[i] << ", ";
-    // }
 
-    // std::cout << std::endl;
+    status = clEnqueueReadBuffer(queue, keys_buf, CL_TRUE, 0,
+                                 len*sizeof(uint32),
+                                 keys, 0, NULL, NULL);
+    CHECK_OPENCL_ERROR(status, "clEnqueueReadBuffer");
+//    std::cout << std::dec;
 }
 
 int CreateBuffers(uint32* keys, uint32 len)
@@ -96,7 +94,7 @@ int LocalSort(uint32 start_bit, uint32* keys, uint32 len)
     CHECK_OPENCL_ERROR(status, "clSetKernelArg");
 
     status = clSetKernelArg(kernel, arg_idx++, sizeof(uint32),
-                            &digits);
+                            &bits_per_digit);
     CHECK_OPENCL_ERROR(status, "clSetKernelArg");
 
     size_t global = len;
@@ -136,7 +134,7 @@ int Histogram(uint32 start_bit, uint32* keys, uint32 len)
     CHECK_OPENCL_ERROR(status, "clSetKernelArg");
 
     status = clSetKernelArg(kernel, arg_idx++, sizeof(uint32),
-                            &digits);
+                            &bits_per_digit);
     CHECK_OPENCL_ERROR(status, "clSetKernelArg");
 
     status = clSetKernelArg(kernel, arg_idx++, sizeof(uint32),
@@ -188,8 +186,8 @@ int Rank(uint32 len)
 
     uint32 num_tiles = (((len - 1) / tile_size) + 1);
     size_t global = radix * num_tiles;
-    // TODO make this bigger (256)
-    size_t local = radix;
+
+    size_t local = 256;
 
     uint32 m = radix * (((len - 1) / tile_size) + 1);
     
@@ -256,7 +254,7 @@ int Scatter(uint32 start_bit, uint32 len)
     CHECK_OPENCL_ERROR(status, "clSetKernelArg");
 
     status = clSetKernelArg(kernel, arg_idx++, sizeof(uint32),
-                            &digits);
+                            &bits_per_digit);
     CHECK_OPENCL_ERROR(status, "clSetKernelArg");
 
     status = clSetKernelArg(kernel, arg_idx++, sizeof(uint32),
@@ -282,7 +280,6 @@ int Scatter(uint32 start_bit, uint32 len)
     status = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global,
                                     &local, 0, NULL, NULL);
     CHECK_OPENCL_ERROR(status, "clEnqueueNDRangeKernel");
-//    std::cout << std::dec;
+
     //PrintBufferContents_Uint32(keys_buf, len, "keys", 16);
-//    std::cout << std::oct;
 }

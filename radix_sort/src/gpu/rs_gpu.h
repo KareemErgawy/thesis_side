@@ -11,7 +11,7 @@ global_variable cl_mem aux_sum_buf;
 
 global_variable uint32 tile_size;
 
-int RadixSort_GPU(uint32* in, uint32 len, uint32 num_digits);
+int GPU_RadixSort(uint32* in, uint32 len, uint32 num_digits);
 
 int CreateBuffers(uint32* keys, uint32 len);
 

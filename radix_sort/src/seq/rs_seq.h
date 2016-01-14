@@ -5,7 +5,7 @@ global_variable uint32* counters;
 global_variable uint32* counters_sum;
 global_variable uint32* out;
 
-void RadixSort_Seq(uint32* in, uint32 len, uint32 num_digits);
+void Seq_RadixSort(uint32* in, uint32 len, uint32 num_digits);
 
 internal
 void CountingSort(uint32* in, uint32 len, uint32 cur_digit);

@@ -1,6 +1,6 @@
 #include <seq/rs_seq.h>
 
-void RadixSort_Seq(uint32* in, uint32 len, uint32 num_digits)
+void Seq_RadixSort(uint32* in, uint32 len, uint32 num_digits)
 {
     counters = (uint32*) malloc(sizeof(uint32) * radix);
     counters_sum = (uint32*) malloc(sizeof(uint32) * radix);
@@ -67,5 +67,5 @@ void Scatter(uint32* in, uint32 len, uint32* out, uint32 cur_digit)
 internal
 uint32 CalcDigitValue(uint32 x, uint32 cur_digit)
 {
-    return ((x >> (cur_digit*digits)) & 0xF);
+    return ((x >> (cur_digit*bits_per_digit)) & 0xF);
 }

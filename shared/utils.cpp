@@ -125,6 +125,40 @@ bool CompareImages(real32* img1, real32* img2, uint32 width,
     return true;
 }
 
+void GenerateTestArray(uint32* array, uint32 len)
+{        
+    for(uint32 i=0 ; i<len ; i++)
+    {
+        array[i] = rand() % 1000;
+    }
+}
+
+bool CompareArrays(uint32* a1, uint32* a2, uint32 len)
+{     
+    for(uint32 i=0 ; i<len ; i++)
+    {
+        if(a1[i] != a2[i])
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool TestIfArrayIsSorted(uint32* array, uint32 len)
+{
+    for(uint32 i=1 ; i<len ; i++)
+    {
+        if(array[i] < array[i-1])
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 // TODO: get the program init out of here and setup so that you have
 // the most capable device
 int SetupOpenCL()

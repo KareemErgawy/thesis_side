@@ -4,6 +4,24 @@
 #include <coarse/conv_coarse.cpp>
 #include <coarse/conv_coarse_svm.cpp>
 
+#define ReportResult(img_name, test_name)               \
+    if(CompareImages(out_img_seq, img_name, img_width,  \
+                     img_height))                       \
+    {                                                   \
+        std::cout << "~~~~~~~~~~~~~~" << std::endl      \
+                  << "TEST PASSED [" #test_name# "]!"   \
+                  << std::endl                          \
+                  << "~~~~~~~~~~~~~~" << std::endl;     \
+    }                                                   \
+    else                                                \
+    {                                                   \
+        std::cout << "~~~~~~~~~~~~~~" << std::endl      \
+                  << "TEST FAILED [" #test_name# "]!"   \
+                  << std::endl                          \
+                  << "~~~~~~~~~~~~~~" << std::endl;     \
+    }
+
+
 static const char* inputImagePath = "../Images/cat.bmp";
 // TODO Generate random large image to compare timings
 int main()
