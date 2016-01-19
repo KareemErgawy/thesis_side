@@ -103,7 +103,7 @@ void GenerateGaussianBlurFilter_5X5(real32* msk)
     msk[21] =  4.0f/273.0f;
     msk[22] =  7.0f/273.0f;
     msk[23] =  4.0f/273.0f;
-    msk[24] =  1.0f/273.0;
+    msk[24] =  1.0f/273.0f;
 }
 
 bool CompareImages(real32* img1, real32* img2, uint32 width,
@@ -115,7 +115,7 @@ bool CompareImages(real32* img1, real32* img2, uint32 width,
     {
         for(c=0 ; c<width ; c++)
         {
-            if(img1[(r*width)+c] != img2[(r*width)+c])
+            if((img1[(r*width)+c] - img2[(r*width)+c]) > 0.0001f)
             {
                 return false;
             }
@@ -159,14 +159,62 @@ bool TestIfArrayIsSorted(uint32* array, uint32 len)
     return true;
 }
 
-// TODO: get the program init out of here and setup so that you have
-// the most capable device
-int SetupOpenCL()
+struct SetupOptions
+{
+    char* required_platform_subname;
+};
+
+int SetupOpenCL(SetupOptions* setup_options=NULL)
 {
     cl_int status;
-    status = clGetPlatformIDs(1, &platform, NULL);
+    cl_uint num_platforms = 0;
+
+    status = clGetPlatformIDs(0, 0, &num_platforms);
     CHECK_OPENCL_ERROR(status, "clGetPlatformIDs");
 
+    cl_platform_id* platforms = (cl_platform_id*)malloc(num_platforms*sizeof(cl_platform_id));
+    CHECK_ALLOCATION(platforms, "devices");
+    
+    status = clGetPlatformIDs(num_platforms, platforms, NULL);
+    CHECK_OPENCL_ERROR(status, "clGetPlatformIDs");
+
+    if(setup_options == NULL)
+    {
+        platform = platforms[0];
+    }
+    else
+    {
+        for(cl_uint i = 0; i < num_platforms; ++i)
+        {
+            size_t platform_name_length = 0;
+            status = clGetPlatformInfo(
+                platforms[i],
+                CL_PLATFORM_NAME,
+                0,
+                0,
+                &platform_name_length);
+            CHECK_OPENCL_ERROR(status, "clGetPlatformInfo");
+
+            char* platform_name = new char[platform_name_length];
+            status = clGetPlatformInfo(
+                platforms[i],
+                CL_PLATFORM_NAME,
+                platform_name_length,
+                platform_name,
+                0);
+            CHECK_OPENCL_ERROR(status, "clGetPlatformInfo");            
+
+            if(strstr(platform_name, setup_options->required_platform_subname))
+            {
+                platform = platforms[i];
+            }
+
+            delete [] platform_name;
+        }
+    }
+
+    free(platforms);
+    
     cl_context_properties cps[3] =
         {
             CL_CONTEXT_PLATFORM,
@@ -192,9 +240,12 @@ int SetupOpenCL()
                               devicesSize, devices, NULL);
     CHECK_OPENCL_ERROR(status, "clGetContextInfo");
 
+    for(size_t i=0 ; i<deviceCount ; i++)
+    {
+        DisplayDeviceSVMCaps(devices[i]);
+    }
+    
     device = devices[0];
-
-    DisplayDeviceSVMCaps(device);
 
     cl_queue_properties prop[] = {0};
     queue = clCreateCommandQueueWithProperties(context, device, prop,
@@ -208,7 +259,13 @@ int SetupKernel(std::string kernel_file_name, std::string kernel_name,
                 cl_kernel* kernel_ptr)
 {
     cl_int status;
-    std::ifstream source_file(kernel_file_name.c_str());
+    std::ifstream source_file(std::string("..\\kernels\\") + kernel_file_name.c_str());
+
+	if (!source_file)
+	{
+		return 1;
+	}
+
     std::string source_code(std::istreambuf_iterator<char>(
                                source_file),
                            (std::istreambuf_iterator<char>()));

@@ -1,5 +1,7 @@
 #include <coarse/conv_coarse_svm.h>
 
+#include <CL/cl.h>
+
 int CoarseSVM_ApplyStencil(real32* in_img, uint32 img_width,
                            uint32 img_height, real32* msk,
                            uint32 msk_width, uint32 msk_height,
@@ -47,8 +49,8 @@ int CoarseSVM_ApplyStencil(real32* in_img, uint32 img_width,
     clSVMFree(context, _msk);
     clSVMFree(context, _out_img);
         
-//    Print2DArray("Output Image: ", out_img, img_width,
-//                 img_height);
+    //Print2DArray("Output Image: ", out_img, img_width,
+    //             img_height);
     
     std::cout << "Coarse (SVM) Convolution FINISH!" << std::endl;
     std::cout << "======================" << std::endl;

@@ -79,9 +79,11 @@ void HandleAllBoundries()
 internal
 void ApplyStencilInnerStep(uint32 row, uint32 col)
 {
-    for(int32 c = -_half_w ; c <= (int32)_half_w ; c++)
+	_out_img[(row*_img_width) + col] = 0;
+	
+	for(int32 c = -(int32)_half_w ; c <= (int32)_half_w ; c++)
     {
-        for(int32 r = -_half_h ; r <= (int32)_half_h ; r++)
+        for(int32 r = -(int32)_half_h ; r <= (int32)_half_h ; r++)
         {
             _out_img[(row*_img_width)+col]
                 += (_in_img[((row+r)*_img_width)+col+c]
@@ -96,9 +98,9 @@ void ApplyStencilBoundaryStep(uint32 row, uint32 col)
 
     _out_img[(row*_img_width)+col] = 0;
     
-    for(int32 c = -_half_w ; c <= (int32)_half_w ; c++)
+    for(int32 c = -(int32)_half_w ; c <= (int32)_half_w ; c++)
     {
-        for(int32 r = -_half_h ; r <= (int32)_half_h ; r++)
+        for(int32 r = -(int32)_half_h ; r <= (int32)_half_h ; r++)
         {
             int32 r1 = r + row;
             int32 c1 = c + col;

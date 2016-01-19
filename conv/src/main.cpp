@@ -9,25 +9,28 @@
                      img_height))                       \
     {                                                   \
         std::cout << "~~~~~~~~~~~~~~" << std::endl      \
-                  << "TEST PASSED [" #test_name# "]!"   \
+                  << "TEST PASSED [" #test_name "]!"   \
                   << std::endl                          \
                   << "~~~~~~~~~~~~~~" << std::endl;     \
     }                                                   \
     else                                                \
     {                                                   \
         std::cout << "~~~~~~~~~~~~~~" << std::endl      \
-                  << "TEST FAILED [" #test_name# "]!"   \
+                  << "TEST FAILED [" #test_name "]!"   \
                   << std::endl                          \
                   << "~~~~~~~~~~~~~~" << std::endl;     \
     }
 
 
 static const char* inputImagePath = "../Images/cat.bmp";
+
 // TODO Generate random large image to compare timings
 int main()
 {
     int status;
-    status = SetupOpenCL();
+    SetupOptions setup_options = {};
+    setup_options.required_platform_subname = "Intel";
+    status = SetupOpenCL(&setup_options);
     CHECK_ERROR(status, "SetupOpenCL");
     //
     // Cat input case
@@ -40,11 +43,11 @@ int main()
     //
     // Test matrix case
     //
-    // int32 img_width = 7;
-    // int32 img_height = 7;
-    // real32* in_img = (real32*)malloc(sizeof(real32)*img_width
-    //                                  *img_height);
-    // GenerateTestImage(in_img, img_width, img_height);
+    //int32 img_width = 7;
+    //int32 img_height = 7;
+    //real32* in_img = (real32*)malloc(sizeof(real32)*img_width
+     //                                *img_height);
+    //GenerateTestImage(in_img, img_width, img_height);
 
     uint32 msk_width = 5;
     uint32 msk_height = 5;
@@ -99,7 +102,7 @@ int main()
                            msk_width, msk_height, out_img_coarse_svm,
                            false);
     writeBmpFloat(out_img_coarse, "cat_coarse_svm.bmp", img_height,
-                  img_width, inputImagePath);
+                 img_width, inputImagePath);
 
     if(CompareImages(out_img_seq, out_img_coarse_svm, img_width,
                      img_height))
