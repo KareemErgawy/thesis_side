@@ -1,2 +1,2 @@
-#TargetFrameworkVersion=v4.0:PlatformToolSet=v140:EnableManagedIncrementalBuild=false:VCToolArchitecture=Native32Bit
-Debug|x64|C:\Users\ergawy\Documents\thesis\code\thesis_side\vs\vs\|
+#TargetFrameworkVersion=v4.0:PlatformToolSet=v140:EnableManagedIncrementalBuild=false:VCToolArchitecture=Native64Bit
+Debug|X64|C:\Users\ergawy\Documents\thesis\code\thesis_side\conv\conv_vs_proj\conv\|

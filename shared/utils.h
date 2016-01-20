@@ -117,6 +117,10 @@ int SetupKernel(std::string kernel_name, cl_kernel* kernel_ptr);
 
 int DisplayDeviceSVMCaps(cl_device_id device);
 
+int DisplayDeviceMemoryCaps(cl_device_id device);
+
+int DisplayDeviceWorkRangeInfo(cl_device_id device);
+
 int PrintCompilerError(cl_program program, cl_device_id device);
 
 int PrintBufferContents_Uint32(cl_mem buf, uint32 size,

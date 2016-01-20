@@ -1,5 +1,9 @@
 #include <utils.h>
 
+#define KiloBytes(bytes) (bytes) / 1024
+#define MegaBytes(bytes) KiloBytes(bytes) / 1024
+#define GigaBytes(bytes) MegaBytes(bytes) / 1024
+
 void Print2DArray(std::string message, real32* array, uint32 width,
                   uint32 height)
 {
@@ -231,7 +235,7 @@ int SetupOpenCL(SetupOptions* setup_options=NULL)
                               &devicesSize);
     CHECK_OPENCL_ERROR(status, "clGetContextInfo");
 
-    int deviceCount = (int)(devicesSize / sizeof(cl_device_id));
+    size_t deviceCount = (devicesSize / sizeof(cl_device_id));
 
     devices = (cl_device_id*)malloc(devicesSize);
     CHECK_ALLOCATION(devices, "devices");
@@ -243,6 +247,8 @@ int SetupOpenCL(SetupOptions* setup_options=NULL)
     for(size_t i=0 ; i<deviceCount ; i++)
     {
         DisplayDeviceSVMCaps(devices[i]);
+        DisplayDeviceMemoryCaps(devices[i]);
+        DisplayDeviceWorkRangeInfo(devices[i]);
     }
     
     device = devices[0];
@@ -261,10 +267,10 @@ int SetupKernel(std::string kernel_file_name, std::string kernel_name,
     cl_int status;
     std::ifstream source_file(std::string("..\\kernels\\") + kernel_file_name.c_str());
 
-	if (!source_file)
-	{
-		return 1;
-	}
+    if (!source_file)
+    {
+        return 1;
+    }
 
     std::string source_code(std::istreambuf_iterator<char>(
                                source_file),
@@ -333,6 +339,82 @@ int DisplayDeviceSVMCaps(cl_device_id device)
     return SUCCESS;
 }
 
+int DisplayDeviceMemoryCaps(cl_device_id device)
+{
+    cl_int status;
+
+    std::cout << std::endl << "Memory properties:" << std::endl;
+
+    cl_ulong global_mem_size;
+    status = clGetDeviceInfo(device, CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(cl_ulong),
+                             &global_mem_size, 0);
+    CHECK_OPENCL_ERROR(status, "clGetDeviceInfo(CL_DEVICE_GLOBAL_MEM_SIZE)");
+    std::cout << "\tCL_DEVICE_GLOBAL_MEM_SIZE: " << MegaBytes(global_mem_size)
+              << " MBytes" << std::endl;
+    
+    cl_ulong global_cache_size;
+    status = clGetDeviceInfo(device, CL_DEVICE_GLOBAL_MEM_CACHE_SIZE, sizeof(cl_ulong),
+                             &global_cache_size, 0);
+    CHECK_OPENCL_ERROR(status, "clGetDeviceInfo(CL_DEVICE_GLOBAL_MEM_CACHE_SIZE)");
+    std::cout << "\tCL_DEVICE_GLOBAL_MEM_CACHE_SIZE: " << KiloBytes(global_cache_size)
+              << " KBytes" << std::endl;
+
+    cl_uint global_cacheline_size;
+    status = clGetDeviceInfo(device, CL_DEVICE_GLOBAL_MEM_CACHELINE_SIZE, sizeof(cl_uint),
+                             &global_cacheline_size, 0);
+    CHECK_OPENCL_ERROR(status, "clGetDeviceInfo(CL_DEVICE_GLOBAL_MEM_CACHELINE_SIZE)");
+    std::cout << "\tCL_DEVICE_GLOBAL_MEM_CACHELINE_SIZE: " << global_cacheline_size
+              << std::endl;
+
+    cl_device_mem_cache_type mem_cache_type;
+    status = clGetDeviceInfo(device, CL_DEVICE_GLOBAL_MEM_CACHE_TYPE,
+                             sizeof(cl_device_mem_cache_type),
+                             &mem_cache_type, 0);
+    CHECK_OPENCL_ERROR(status, "clGetDeviceInfo(CL_DEVICE_GLOBAL_MEM_CACHE_TYPE)");
+    std::cout << "\tCL_DEVICE_GLOBAL_MEM_CACHE_TYPE: ";
+    if(mem_cache_type && CL_NONE)
+    {
+        std::cout << "CL_NONE | ";
+    }
+    else if(mem_cache_type && CL_READ_ONLY_CACHE)
+    {
+        std::cout << "CL_READ_ONLY_CACHE | ";
+    }
+    if(mem_cache_type && CL_READ_WRITE_CACHE)
+    {
+        std::cout << "CL_READ_WRITE_CACHE" << std::endl;
+    }
+    
+    std::cout << std::endl;
+    
+    return SUCCESS;
+}
+
+int DisplayDeviceWorkRangeInfo(cl_device_id device)
+{
+    cl_int status;
+
+    std::cout << std::endl << "Work dim properties:" << std::endl;
+
+    cl_uint num_compute_units;
+    status = clGetDeviceInfo(device, CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(cl_uint),
+                             &num_compute_units, 0);
+    CHECK_OPENCL_ERROR(status, "clGetDeviceInfo(CL_DEVICE_MAX_COMPUTE_UNITS)");
+    std::cout << "\tCL_DEVICE_MAX_COMPUTE_UNITS: " << num_compute_units
+              << std::endl;    
+    
+    size_t max_workgroup_size;
+    status = clGetDeviceInfo(device, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t),
+                             &max_workgroup_size, 0);
+    CHECK_OPENCL_ERROR(status, "clGetDeviceInfo(CL_DEVICE_MAX_WORK_GROUP_SIZE)");
+    std::cout << "\tCL_DEVICE_MAX_WORK_GROUP_SIZE: " << max_workgroup_size
+              << std::endl;
+
+    std::cout << std::endl;
+
+    return SUCCESS;
+}
+
 int PrintCompilerError(cl_program program, cl_device_id device)
 {
     cl_int status;
@@ -353,6 +435,8 @@ int PrintCompilerError(cl_program program, cl_device_id device)
     CHECK_OPENCL_ERROR(status, "clGetProgramBuildInfo");
 
     std::cout << log << std::endl;
+
+    return SUCCESS;
 }
 
 int PrintBufferContents_Uint32(cl_mem buf, uint32 size, std::string name,
@@ -387,4 +471,6 @@ int PrintBufferContents_Uint32(cl_mem buf, uint32 size, std::string name,
 
     free(temp);
 
+
+    return SUCCESS;
 }

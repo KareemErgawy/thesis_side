@@ -97,17 +97,19 @@ int Coarse_ApplyStencil(real32* in_img, uint32 img_width,
                             &out_img_buf);
     CHECK_OPENCL_ERROR(status, "clSetKernelArg");
     
-    // TODO play with local range to understand its effect
-        
-    // TODO use offset fields instead of calculating that in the
-    // kernel
+    size_t local_dim = 16;
+    
     size_t global[2];
-    global[0] = inner_width;
-    global[1] = inner_height;
+    global[0] = (((inner_width - 1) / local_dim) + 1) * local_dim;
+    global[1] = (((inner_height - 1) / local_dim) + 1) * local_dim;
 
+    size_t local[2];
+    local[0] = local_dim;
+    local[1] = local_dim;
+    
     status = clEnqueueNDRangeKernel(queue, kernel, 2, NULL,
                                     global,
-                                    NULL, 0, NULL, NULL);
+                                    local, 0, NULL, NULL);
     CHECK_OPENCL_ERROR(status, "clEnqueueNDRangeKernel");
 
     status = clEnqueueReadBuffer(queue, out_img_buf, CL_TRUE, 0,

@@ -1,18 +1,10 @@
-﻿Build started 1/19/2016 3:07:52 PM.
+﻿Build started 1/20/2016 5:17:00 PM.
      1>Project "C:\Users\ergawy\Documents\thesis\code\thesis_side\conv\conv_vs_proj\conv\conv.vcxproj" on node 2 (Build target(s)).
-     1>ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _CRT_SECURE_NO_WARNINGS /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"Debug\\" /Fd"Debug\vc140.pdb" /Gd /TP /analyze- /errorReport:prompt ..\..\src\main.cpp
-         main.cpp
-     1>c:\users\ergawy\documents\thesis\code\thesis_side\shared\utils.cpp(243): warning C4018: '<': signed/unsigned mismatch
-     1>c:\users\ergawy\documents\thesis\code\thesis_side\shared\utils.cpp(356): warning C4715: 'PrintCompilerError': not all control paths return a value
-     1>c:\users\ergawy\documents\thesis\code\thesis_side\shared\utils.cpp(390): warning C4715: 'PrintBufferContents_Uint32': not all control paths return a value
-     1>c:\users\ergawy\documents\thesis\code\thesis_side\conv\src\coarse\conv_coarse_svm.cpp(90): warning C4715: 'ClearSVMObject': not all control paths return a value
-     1>c:\users\ergawy\documents\thesis\code\thesis_side\conv\src\coarse\conv_coarse_svm.cpp(167): warning C4715: 'SVMHandleInnerRegions': not all control paths return a value
-       Link:
+     1>Link:
          C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\ergawy\Documents\thesis\code\thesis_side\vs\vs\Debug\conv.exe" /INCREMENTAL /NOLOGO OpenCL.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /Debug /PDB:"C:\Users\ergawy\Documents\thesis\code\thesis_side\vs\vs\Debug\conv.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\ergawy\Documents\thesis\code\thesis_side\vs\vs\Debug\conv.lib" /MACHINE:X86 Debug\main.obj
          conv.vcxproj -> C:\Users\ergawy\Documents\thesis\code\thesis_side\vs\vs\Debug\conv.exe
      1>Done Building Project "C:\Users\ergawy\Documents\thesis\code\thesis_side\conv\conv_vs_proj\conv\conv.vcxproj" (Build target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:00.78
+Time Elapsed 00:00:00.39

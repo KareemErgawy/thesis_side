@@ -49,8 +49,8 @@ int CoarseSVM_ApplyStencil(real32* in_img, uint32 img_width,
     clSVMFree(context, _msk);
     clSVMFree(context, _out_img);
         
-    //Print2DArray("Output Image: ", out_img, img_width,
-    //             img_height);
+    Print2DArray("Output Image: ", out_img, img_width,
+                 img_height);
     
     std::cout << "Coarse (SVM) Convolution FINISH!" << std::endl;
     std::cout << "======================" << std::endl;
@@ -87,6 +87,8 @@ int ClearSVMObject()
 
     status = clEnqueueSVMUnmap(queue, _in_img, 0, NULL, NULL);
     CHECK_OPENCL_ERROR(status, "clEnqueueSVMUnmap");
+
+    return SUCCESS;
 }
 
 int SVMHandleAllBoundries(real32* in_img, real32* msk,
@@ -152,18 +154,31 @@ int SVMHandleInnerRegions()
         
     status = clSetKernelArgSVMPointer(kernel, 4, _out_img);
     CHECK_OPENCL_ERROR(status, "clSetKernelArgSVMPointer");
+
+    // NOTE: despite having a max group size of 256 (16x16) on this
+    // machine, the kernel fails to produce the correct results when
+    // using svm. the max power of 2 that it accepts is 1!! the reason
+    // is that the work group must be a multiple of the local
+    // size. this can be overcome in coarse SVM because we will have
+    // to map and unmpa any way but in fine grained access
+    size_t local_dim = 1;
     
-    // TODO play with local range to understand its effect
     size_t global[2];
-    global[0] = _inner_width;
-    global[1] = _inner_height;
+    global[0] = (((_inner_width - 1) / local_dim) + 1) * local_dim;
+    global[1] = (((_inner_height - 1) / local_dim) + 1) * local_dim;
+
+    size_t local[2];
+    local[0] = local_dim;
+    local[1] = local_dim;
 
     status = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, global,
-                                    NULL, 0, NULL, NULL);
+                                    local, 0, NULL, NULL);
     CHECK_OPENCL_ERROR(status, "clEnqueueNDRangeKernel");
 
     status = clFlush(queue);
     CHECK_OPENCL_ERROR(status, "clFlush");
+
+    return SUCCESS;
 }
 
 cl_int CopyOutputFromSVM(real32* out_img)
