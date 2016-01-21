@@ -22,7 +22,11 @@
     }                                                   \
     std::cout << std::endl << std::endl;
 
-#define CAT 0
+#define SIMPLE 0
+#define CAT    1
+#define RAND   2
+
+#define CASE   RAND
 
 static const char* inputImagePath = "../Images/cat.bmp";
 
@@ -35,7 +39,7 @@ int main()
     status = SetupOpenCL(&setup_options);
     CHECK_ERROR(status, "SetupOpenCL");
 
-#if CAT
+#if (CASE == CAT)
     //
     // Cat input case
     //
@@ -43,6 +47,18 @@ int main()
     int32 img_height;
     real32* in_img = readBmpFloat(inputImagePath, &img_height,
                                   &img_width);
+#elif (CASE == RAND)
+    //
+    // Random matrix case
+    //
+    // TODO test the effects of the relationship between this image
+    // size and this machine's computing power (generate an image that
+    // fits perfectly and exactly in the avaiable compute units)
+    int32 img_width = 4096;
+    int32 img_height = 4096;
+    real32* in_img = (real32*)malloc(sizeof(real32)*img_width
+                                     *img_height);
+    GenerateRandomImage(in_img, img_width, img_height);    
 #else
     //
     // Test matrix case
@@ -58,7 +74,8 @@ int main()
     uint32 msk_height = 5;
     real32* msk = (real32*)malloc(
         sizeof(real32)*msk_width*msk_height);
-#if CAT
+
+#if ((CASE == CAT) || (CASE == RAND))
     GenerateGaussianBlurFilter_5X5(msk);
 #else
     GenerateTestMask(msk, msk_width, msk_height);
@@ -71,7 +88,8 @@ int main()
                                           *img_height);
     Seq_ApplyStencil(in_img, img_width, img_height, msk, msk_width,
                      msk_height, out_img_seq);
-#if CAT
+    
+#if (CASE == CAT)
     writeBmpFloat(out_img_seq, "cat_seq.bmp", img_height,
                   img_width, inputImagePath);
 #endif
@@ -85,7 +103,7 @@ int main()
     Coarse_ApplyStencil(in_img, img_width, img_height, msk,
                         msk_width, msk_height, out_img_coarse,
                         false);
-#if CAT
+#if (CASE == CAT)
     writeBmpFloat(out_img_coarse, "cat_coarse.bmp", img_height,
                   img_width, inputImagePath);
 #endif
@@ -99,7 +117,7 @@ int main()
     CoarseSVM_ApplyStencil(in_img, img_width, img_height, msk,
                            msk_width, msk_height, out_img_coarse_svm,
                            false);
-#if CAT
+#if (CASE == CAT)
     writeBmpFloat(out_img_coarse_svm, "cat_coarse_svm.bmp", img_height,
                  img_width, inputImagePath);
 #endif
@@ -113,7 +131,7 @@ int main()
                                              *img_height);
     Coarse_ApplyStencil(in_img, img_width, img_height, msk,
                         msk_width, msk_height, out_img_coarse);
-#if CAT
+#if (CASE == CAT)
     writeBmpFloat(out_img_coarse, "cat_coarse_unrolled.bmp",
                   img_height,
                   img_width, inputImagePath);
@@ -128,7 +146,7 @@ int main()
         sizeof(real32)*img_width*img_height);
     CoarseSVM_ApplyStencil(in_img, img_width, img_height, msk,
                            msk_width, msk_height, out_img_coarse_svm);
-#if CAT
+#if (CASE == CAT)
     writeBmpFloat(out_img_coarse_svm, "cat_coarse_svm_unrolled.bmp",
                   img_height,
                   img_width, inputImagePath);

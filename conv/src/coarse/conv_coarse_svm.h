@@ -14,13 +14,12 @@ global_variable size_t compile_wrkgrp_size[3];
 int CoarseSVM_ApplyStencil(real32* in_img, uint32 img_width,
                            uint32 img_height, real32* msk,
                            uint32 msk_width, uint32 msk_height,
-                           real32* out_img, bool use_urolled = true);
+                           real32* out_img, bool use_unrolled = true);
 
 int AllocateSVMObjects();
-int ClearSVMObject();
 int SVMHandleAllBoundries(real32* in_img, real32* msk,
                              real32* out_img);
-int SVMHandleInnerRegions();
+int SVMHandleInnerRegions(bool use_unrolled, cl_event* kernel_evt);
 int CopyOutputFromSVM(real32* out_img);
 
 #define CONV_COARSE_SVM_H

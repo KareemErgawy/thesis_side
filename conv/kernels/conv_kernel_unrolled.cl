@@ -6,6 +6,7 @@
 // NOTE: it is assumed that the mask kernel is 5x5 in order to be
 // able to unroll the loop
 __kernel void conv_kernel(__global float* in_img, int img_width,
+                          int img_height,
                           __global float* msk,
 			  __global float* out_img)
 {

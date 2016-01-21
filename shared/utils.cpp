@@ -1,4 +1,5 @@
 #include <utils.h>
+#include <assert.h>
 
 #define KiloBytes(bytes) (bytes) / 1024
 #define MegaBytes(bytes) KiloBytes(bytes) / 1024
@@ -38,6 +39,20 @@ void Clear2DArray(real32* array, uint32 width, uint32 height,
             array[(r*width) + c] = value;
         }
     }    
+}
+
+void GenerateRandomImage(real32* img, uint32 img_width,
+                     uint32 img_height)
+{
+    uint32 c, r;
+    
+    for(c=0 ; c<img_width ; c++)
+    {
+        for(r=0 ; r<img_height ; r++)
+        {
+            
+        }
+    }
 }
 
 void GenerateTestImage(real32* img, uint32 img_width,
@@ -473,4 +488,24 @@ int PrintBufferContents_Uint32(cl_mem buf, uint32 size, std::string name,
 
 
     return SUCCESS;
+}
+
+
+void TestCaseStarted()
+{
+    assert(!timer.working);
+
+    timer.working = true;
+    timer.start = clock();
+}
+
+real64 TestCaseFinished()
+{
+    assert(timer.working);
+
+    timer.working = false;
+    clock_t diff = clock() - timer.start;
+
+    std::cout << "time elapsed = " << diff << std::endl;
+    return diff;
 }

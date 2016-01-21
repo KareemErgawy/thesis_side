@@ -3,11 +3,11 @@
 int Coarse_ApplyStencil(real32* in_img, uint32 img_width,
                         uint32 img_height, real32* msk,
                         uint32 msk_width, uint32 msk_height,
-                        real32* out_img, bool use_urolled)
+                        real32* out_img, bool use_unrolled)
 {
     std::cout << "Coarse (non-SVM) Convolution START!" << std::endl;
 
-    if(use_urolled)
+    if(use_unrolled)
     {
         std::cout << "Urolled kernel used";
     }
@@ -17,6 +17,8 @@ int Coarse_ApplyStencil(real32* in_img, uint32 img_width,
     }
     std::cout << std::endl;
 
+    TestCaseStarted();
+    
     //Print2DArray("Input Image: ", in_img, img_width, img_height);
     _in_img = in_img;
     _img_width = img_width;
@@ -62,7 +64,7 @@ int Coarse_ApplyStencil(real32* in_img, uint32 img_width,
 
     cl_kernel kernel;
     
-    if(use_urolled)
+    if(use_unrolled)
     {
         status = SetupKernel("conv_kernel_unrolled.cl",
                              "conv_kernel", &kernel);
@@ -81,12 +83,16 @@ int Coarse_ApplyStencil(real32* in_img, uint32 img_width,
     status = clSetKernelArg(kernel, arg_idx++, sizeof(uint32),
                             &img_width);
     CHECK_OPENCL_ERROR(status, "clSetKernelArg");
+
+    status = clSetKernelArg(kernel, arg_idx++, sizeof(uint32),
+                            &img_height);
+    CHECK_OPENCL_ERROR(status, "clSetKernelArg");
         
     status = clSetKernelArg(kernel, arg_idx++, sizeof(cl_mem),
                             &msk_buf);
     CHECK_OPENCL_ERROR(status, "clSetKernelArg");
 
-    if(!use_urolled)
+    if(!use_unrolled)
     {
         status = clSetKernelArg(kernel, arg_idx++, sizeof(uint32),
                                 &msk_width);
@@ -106,10 +112,11 @@ int Coarse_ApplyStencil(real32* in_img, uint32 img_width,
     size_t local[2];
     local[0] = local_dim;
     local[1] = local_dim;
-    
+
+    cl_event evt;
     status = clEnqueueNDRangeKernel(queue, kernel, 2, NULL,
                                     global,
-                                    local, 0, NULL, NULL);
+                                    local, 0, NULL, &evt);
     CHECK_OPENCL_ERROR(status, "clEnqueueNDRangeKernel");
 
     status = clEnqueueReadBuffer(queue, out_img_buf, CL_TRUE, 0,
@@ -120,6 +127,9 @@ int Coarse_ApplyStencil(real32* in_img, uint32 img_width,
     // TODO: try to use clEnqueueNativeKernel here
     HandleAllBoundries();
 
+    clWaitForEvents(1, &evt);
+
+    TestCaseFinished();
     //Print2DArray("Output Image: ", out_img, img_width, img_height);
     std::cout << "Coarse (non-SVM) Convolution FINISH!" << std::endl;
     std::cout << "======================" << std::endl;

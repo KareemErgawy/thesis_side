@@ -5,11 +5,11 @@
 int CoarseSVM_ApplyStencil(real32* in_img, uint32 img_width,
                            uint32 img_height, real32* msk,
                            uint32 msk_width, uint32 msk_height,
-                           real32* out_img, bool use_urolled)
+                           real32* out_img, bool use_unrolled)
 {
     std::cout << "Coarse (SVM) Convolution START!" << std::endl;
 
-    if(use_urolled)
+    if(use_unrolled)
     {
         std::cout << "Urolled kernel used";
     }
@@ -18,6 +18,8 @@ int CoarseSVM_ApplyStencil(real32* in_img, uint32 img_width,
         std::cout << "Urolled kernel used NOT used";        
     }
     std::cout << std::endl;
+
+    TestCaseStarted();
     
     _img_width = img_width;
     _img_height = img_height;
@@ -33,24 +35,27 @@ int CoarseSVM_ApplyStencil(real32* in_img, uint32 img_width,
     _msk_size = msk_width * msk_height;
         
     cl_int status;
-                
+
     status = AllocateSVMObjects();
     CHECK_ERROR(status, "AllocateSVMObjects");
     status = SVMHandleAllBoundries(in_img, msk, out_img);
     CHECK_ERROR(status, "SVMHandleAllBoundries");
-//    status = ClearSVMObject();
-//    CHECK_ERROR(status, "ClearSVMObject");
-    status = SVMHandleInnerRegions();
+
+    cl_event kernel_evt;
+    status = SVMHandleInnerRegions(use_unrolled, &kernel_evt);
     CHECK_ERROR(status, "SVMHandleInnerRegions");
+    clWaitForEvents(1, &kernel_evt);
     status = CopyOutputFromSVM(out_img);
     CHECK_ERROR(status, "CopyOutputFromSVM");
 
+    TestCaseFinished();
+    
     clSVMFree(context, _in_img);
     clSVMFree(context, _msk);
     clSVMFree(context, _out_img);
         
-    Print2DArray("Output Image: ", out_img, img_width,
-                 img_height);
+    // Print2DArray("Output Image: ", out_img, img_width,
+    //              img_height);
     
     std::cout << "Coarse (SVM) Convolution FINISH!" << std::endl;
     std::cout << "======================" << std::endl;
@@ -71,23 +76,6 @@ int AllocateSVMObjects()
         context, CL_MEM_READ_WRITE, _img_size*sizeof(real32), 0);
     CHECK_ALLOCATION(_out_img, "_out_img");
     
-    return SUCCESS;
-}
-
-int ClearSVMObject()
-{
-    cl_int status;
-    status = clEnqueueSVMMap(queue, CL_TRUE,
-                             CL_MAP_WRITE_INVALIDATE_REGION,
-                             _out_img, _img_size*sizeof(real32),
-                             0, NULL, NULL);
-    CHECK_OPENCL_ERROR(status, "clEnqueueSVMMap");
-
-    Clear2DArray(_out_img, _img_width, _img_height, 0);
-
-    status = clEnqueueSVMUnmap(queue, _in_img, 0, NULL, NULL);
-    CHECK_OPENCL_ERROR(status, "clEnqueueSVMUnmap");
-
     return SUCCESS;
 }
 
@@ -132,27 +120,43 @@ int SVMHandleAllBoundries(real32* in_img, real32* msk,
     return status;
 }
 
-int SVMHandleInnerRegions()
+int SVMHandleInnerRegions(bool use_unrolled, cl_event* kernel_evt)
 {
     int status;
     cl_kernel kernel;
-    
-    status = SetupKernel("conv_kernel.cl", "conv_kernel", &kernel);
+
+        
+    if(use_unrolled)
+    {
+        status = SetupKernel("conv_kernel_unrolled.cl",
+                             "conv_kernel", &kernel);
+    }
+    else
+    {
+        status = SetupKernel("conv_kernel.cl", "conv_kernel", &kernel);
+    }
     CHECK_ERROR(status, "SetupKernel");
 
-    status = clSetKernelArgSVMPointer(kernel, 0, _in_img);
+    int arg_idx = 0;
+    status = clSetKernelArgSVMPointer(kernel, arg_idx++, _in_img);
     CHECK_OPENCL_ERROR(status, "clSetKernelArgSVMPointer");
 
-    status = clSetKernelArg(kernel, 1, sizeof(uint32), &_img_width);
+    status = clSetKernelArg(kernel, arg_idx++, sizeof(uint32), &_img_width);
+    CHECK_OPENCL_ERROR(status, "clSetKernelArg");
+
+    status = clSetKernelArg(kernel, arg_idx++, sizeof(uint32), &_img_height);
     CHECK_OPENCL_ERROR(status, "clSetKernelArg");
     
-    status = clSetKernelArgSVMPointer(kernel,  2, _msk);
+    status = clSetKernelArgSVMPointer(kernel,  arg_idx++, _msk);
     CHECK_OPENCL_ERROR(status, "clSetKernelArgSVMPointer");
 
-    status = clSetKernelArg(kernel, 3, sizeof(uint32), &_msk_width);
-    CHECK_OPENCL_ERROR(status, "clSetKernelArg");
-        
-    status = clSetKernelArgSVMPointer(kernel, 4, _out_img);
+    if(!use_unrolled)
+    {
+        status = clSetKernelArg(kernel, arg_idx++, sizeof(uint32), &_msk_width);
+        CHECK_OPENCL_ERROR(status, "clSetKernelArg");
+    }   
+
+    status = clSetKernelArgSVMPointer(kernel, arg_idx++, _out_img);
     CHECK_OPENCL_ERROR(status, "clSetKernelArgSVMPointer");
 
     // NOTE: despite having a max group size of 256 (16x16) on this
@@ -161,7 +165,11 @@ int SVMHandleInnerRegions()
     // is that the work group must be a multiple of the local
     // size. this can be overcome in coarse SVM because we will have
     // to map and unmpa any way but in fine grained access
-    size_t local_dim = 1;
+    
+    // as Arsene suggested I justed added an if condition to the
+    // kernel code for now. only a few number of groups will diverge
+    // making the overhead neglegible
+    size_t local_dim = 16;
     
     size_t global[2];
     global[0] = (((_inner_width - 1) / local_dim) + 1) * local_dim;
@@ -172,11 +180,8 @@ int SVMHandleInnerRegions()
     local[1] = local_dim;
 
     status = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, global,
-                                    local, 0, NULL, NULL);
+                                    local, 0, NULL, kernel_evt);
     CHECK_OPENCL_ERROR(status, "clEnqueueNDRangeKernel");
-
-    status = clFlush(queue);
-    CHECK_OPENCL_ERROR(status, "clFlush");
 
     return SUCCESS;
 }

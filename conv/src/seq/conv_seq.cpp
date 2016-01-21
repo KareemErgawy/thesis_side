@@ -7,6 +7,8 @@ void Seq_ApplyStencil(real32* in_img, uint32 img_width,
 {
     std::cout << "Sequential Convolution START!" << std::endl;
     //Print2DArray("Input Image: ", in_img, img_width, img_height);
+    TestCaseStarted();
+    
     _in_img = in_img;
     _img_width = img_width;
     _img_height = img_height;
@@ -28,6 +30,7 @@ void Seq_ApplyStencil(real32* in_img, uint32 img_width,
         }
     }
 
+    TestCaseFinished();
     //Print2DArray("Output Image: ", out_img, img_width, img_height);
     std::cout << "Sequential Convolution FINISH!" << std::endl;
     std::cout << "======================" << std::endl;
@@ -35,8 +38,7 @@ void Seq_ApplyStencil(real32* in_img, uint32 img_width,
 
 internal
 void HandleAllBoundries()
-{
-    
+{    
     uint32 c, r;
     
     // top boundary
@@ -79,9 +81,9 @@ void HandleAllBoundries()
 internal
 void ApplyStencilInnerStep(uint32 row, uint32 col)
 {
-	_out_img[(row*_img_width) + col] = 0;
-	
-	for(int32 c = -(int32)_half_w ; c <= (int32)_half_w ; c++)
+    _out_img[(row*_img_width) + col] = 0;
+    
+    for(int32 c = -(int32)_half_w ; c <= (int32)_half_w ; c++)
     {
         for(int32 r = -(int32)_half_h ; r <= (int32)_half_h ; r++)
         {
@@ -95,7 +97,6 @@ void ApplyStencilInnerStep(uint32 row, uint32 col)
 internal
 void ApplyStencilBoundaryStep(uint32 row, uint32 col)
 {
-
     _out_img[(row*_img_width)+col] = 0;
     
     for(int32 c = -(int32)_half_w ; c <= (int32)_half_w ; c++)

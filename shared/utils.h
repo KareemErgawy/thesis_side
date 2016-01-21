@@ -8,7 +8,7 @@
 #include <iomanip>
 #include <cmath>
 #include <stdint.h>
-
+#include <time.h>
 #include <CL/cl.h>
 
 #include <Utils/bmp-utils.c>
@@ -19,6 +19,7 @@
 typedef uint32_t uint32;
 typedef int32_t int32;
 typedef float real32;
+typedef double real64;
 
 #define ArrayCount(Array) (sizeof(Array) / sizeof((Array)[0]))
 
@@ -66,7 +67,7 @@ typedef float real32;
                   << std::endl;                                     \
         std::cout << "Location : " << __FILE__ << ":" << __LINE__   \
                   << std::endl;                                     \
-        return ALLOCATION_FAILURE;                                                   \
+        return ALLOCATION_FAILURE;                                  \
     }
 
 global_variable cl_platform_id   platform;
@@ -89,6 +90,9 @@ void GenerateTestImage(real32* img, uint32 img_width,
 
 void GenerateTestMask(real32* msk, uint32 msk_width,
                       uint32 msk_height);
+
+void GenerateRandomImage(real32* img, uint32 img_width,
+                         uint32 img_height);
 
 void GenerateGaussianBlurFilter_5X5(real32* msk);
 
@@ -125,5 +129,20 @@ int PrintCompilerError(cl_program program, cl_device_id device);
 
 int PrintBufferContents_Uint32(cl_mem buf, uint32 size,
                                std::string name, uint32 line_size);
+
+//
+// Test case timing utils
+//
+struct TestCaseTimer
+{
+    clock_t start;
+    bool working;
+};
+
+TestCaseTimer timer;
+
+void TestCaseStarted();
+
+real64 TestCaseFinished();
 
 #endif
