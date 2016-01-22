@@ -518,3 +518,25 @@ real64 TestCaseFinished(TestLoopTimer* loop_timer)
     //std::cout << "time elapsed = " << diff << std::endl;
     return diff;
 }
+
+void DrawProgressBar(uint32 cur, uint32 target)
+{
+    std::string bar;
+    bar = "[";
+    uint32 progress = ((cur * 100) / target) / 10;
+
+    uint32 i;
+
+    for(i=0 ; i<progress ; ++i)
+    {
+        bar += "+++";
+    }
+
+    for(i=progress+1 ; i<=10 ; ++i)
+    {
+        bar += "   ";
+    }
+
+    bar += "]";
+    std::cout << "\33[2K\r" << bar;
+}

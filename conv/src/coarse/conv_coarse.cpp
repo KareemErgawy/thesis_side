@@ -1,6 +1,6 @@
 #include <coarse/conv_coarse.h>
 
-int Coarse_ApplyStencil(ConvWrapper* wrapper, bool use_unrolled)
+int Coarse_ApplyStencil(ConvWrapper* wrapper, cl_kernel kernel)
 {
     /*std::cout << "Coarse (non-SVM) Convolution START!" << std::endl;
 
@@ -64,8 +64,9 @@ int Coarse_ApplyStencil(ConvWrapper* wrapper, bool use_unrolled)
                                   wrapper->msk, 0, NULL, NULL);
     CHECK_OPENCL_ERROR(status, "clEnqueueWriteBuffer");
 
+    /*
     cl_kernel kernel;
-    
+
     if(use_unrolled)
     {
         status = SetupKernel("conv_kernel_unrolled.cl",
@@ -76,7 +77,11 @@ int Coarse_ApplyStencil(ConvWrapper* wrapper, bool use_unrolled)
         status = SetupKernel("conv_kernel.cl", "conv_kernel", &kernel);
     }
     CHECK_ERROR(status, "SetupKernel");
+    */
 
+    //status = SetupKernel("conv_kernel.cl", "conv_kernel", &kernel);
+    //CHECK_ERROR(status, "SetupKernel");
+    
     int arg_idx = 0;
     status = clSetKernelArg(kernel, arg_idx++, sizeof(cl_mem),
                             &in_img_buf);
@@ -94,12 +99,12 @@ int Coarse_ApplyStencil(ConvWrapper* wrapper, bool use_unrolled)
                             &msk_buf);
     CHECK_OPENCL_ERROR(status, "clSetKernelArg");
 
-    if(!use_unrolled)
-    {
-        status = clSetKernelArg(kernel, arg_idx++, sizeof(uint32),
-                                &wrapper->msk_width);
-        CHECK_OPENCL_ERROR(status, "clSetKernelArg");
-    }
+    //if(!use_unrolled)
+    //{
+    status = clSetKernelArg(kernel, arg_idx++, sizeof(uint32),
+                            &wrapper->msk_width);
+    CHECK_OPENCL_ERROR(status, "clSetKernelArg");
+    //}
     
     status = clSetKernelArg(kernel, arg_idx++, sizeof(cl_mem),
                             &out_img_buf);

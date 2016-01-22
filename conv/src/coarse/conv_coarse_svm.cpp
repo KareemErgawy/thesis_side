@@ -2,7 +2,7 @@
 
 #include <CL/cl.h>
 
-int CoarseSVM_ApplyStencil(ConvWrapper* wrapper, bool use_unrolled)
+int CoarseSVM_ApplyStencil(ConvWrapper* wrapper, cl_kernel kernel)
 {
     /*
     std::cout << "Coarse (SVM) Convolution START!" << std::endl;
@@ -50,7 +50,7 @@ int CoarseSVM_ApplyStencil(ConvWrapper* wrapper, bool use_unrolled)
     cl_event kernel_evt;
     status = SVMHandleInnerRegions(wrapper, svm_in_img, svm_msk, svm_out_img,
                                    inner_width, inner_height,
-                                   use_unrolled, &kernel_evt);
+                                   kernel, &kernel_evt);
     CHECK_ERROR(status, "SVMHandleInnerRegions");
     status = CopyOutputFromSVM(wrapper->out_img, svm_out_img, img_size);
     CHECK_ERROR(status, "CopyOutputFromSVM");
@@ -142,11 +142,12 @@ int SVMHandleAllBoundries(ConvWrapper* wrapper, real32* svm_in_img,
 
 int SVMHandleInnerRegions(ConvWrapper* wrapper, real32* svm_in_img, real32* svm_msk,
                           real32* svm_out_img, uint32 inner_width, uint32 inner_height,
-                          bool use_unrolled, cl_event* kernel_evt)
+                          cl_kernel kernel, cl_event* kernel_evt)
 {
     int status;
+    /*
     cl_kernel kernel;
-        
+
     if(use_unrolled)
     {
         status = SetupKernel("conv_kernel_unrolled.cl",
@@ -157,7 +158,11 @@ int SVMHandleInnerRegions(ConvWrapper* wrapper, real32* svm_in_img, real32* svm_
         status = SetupKernel("conv_kernel.cl", "conv_kernel", &kernel);
     }
     CHECK_ERROR(status, "SetupKernel");
+    */
 
+    //status = SetupKernel("conv_kernel.cl", "conv_kernel", &kernel);
+    //CHECK_ERROR(status, "SetupKernel");
+    
     int arg_idx = 0;
     status = clSetKernelArgSVMPointer(kernel, arg_idx++, svm_in_img);
     CHECK_OPENCL_ERROR(status, "clSetKernelArgSVMPointer");
@@ -171,11 +176,11 @@ int SVMHandleInnerRegions(ConvWrapper* wrapper, real32* svm_in_img, real32* svm_
     status = clSetKernelArgSVMPointer(kernel,  arg_idx++, svm_msk);
     CHECK_OPENCL_ERROR(status, "clSetKernelArgSVMPointer");
 
-    if(!use_unrolled)
-    {
-        status = clSetKernelArg(kernel, arg_idx++, sizeof(uint32), &wrapper->msk_width);
-        CHECK_OPENCL_ERROR(status, "clSetKernelArg");
-    }   
+    //if(!use_unrolled)
+    //{
+    status = clSetKernelArg(kernel, arg_idx++, sizeof(uint32), &wrapper->msk_width);
+    CHECK_OPENCL_ERROR(status, "clSetKernelArg");
+    //}   
 
     status = clSetKernelArgSVMPointer(kernel, arg_idx++, svm_out_img);
     CHECK_OPENCL_ERROR(status, "clSetKernelArgSVMPointer");

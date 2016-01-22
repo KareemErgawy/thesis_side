@@ -2,7 +2,7 @@
 
 #include <CL/cl.h>
 
-int FineSVM_ApplyStencil(ConvWrapper* wrapper, bool use_unrolled, bool wait_kernel)
+int FineSVM_ApplyStencil(ConvWrapper* wrapper, cl_kernel kernel, bool wait_kernel)
 {
     /*
     std::cout << "Fine (SVM) Convolution START!" << std::endl;
@@ -47,7 +47,7 @@ int FineSVM_ApplyStencil(ConvWrapper* wrapper, bool use_unrolled, bool wait_kern
     cl_event kernel_evt;
     status = SVMHandleInnerRegions(wrapper, svm_in_img, svm_msk, svm_out_img,
                                    inner_width, inner_height,
-                                   use_unrolled, &kernel_evt);
+                                   kernel, &kernel_evt);
     CHECK_ERROR(status, "SVMHandleInnerRegions");
 
     status = FineSVM_HandleAllBoundries(wrapper, svm_in_img, svm_msk, svm_out_img, img_size,

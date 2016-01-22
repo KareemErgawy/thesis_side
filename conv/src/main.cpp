@@ -6,33 +6,40 @@ global_variable TestLoopTimer loop_timer;
 #include <coarse/conv_coarse.cpp>
 #include <coarse/conv_coarse_svm.cpp>
 #include <fine/conv_fine_svm.cpp>
+#include <gpu/conv_gpu.cpp>
 
 #define ReportTotalResult()                                         \
     std::cout << "\x1b[33;1mTotal elapsed time:\t\t"                \
     << loop_timer.total_time << "(ms)"  << std::endl                \
     << "Average:\t\t\t" << ((real32)loop_timer.total_time           \
                             /(real32)loop_timer.num_iterations)     \
-    << "(ms)" << std::endl <<"\x1b[32;1mSuccess rate:\t\t\t"        \
+    << "(ms)" << std::endl                                          \
+    << ((loop_timer.num_successes < loop_timer.num_iterations) ?    \
+        "\x1b[31;1m" : "\x1b[32;1m")                                \
+    << "Success rate:\t\t\t"                                        \
     << loop_timer.num_successes << "/" << loop_timer.num_iterations \
     << " (" << ((real32)loop_timer.num_successes                    \
                 / (real32)loop_timer.num_iterations * 100.0f)       \
-    << "%)\x1b[0m" << std::endl << std::endl << std::endl;                         
+    << "%)\x1b[0m" << std::endl;
 
-#define ReportResult(img_name, test_name)                               \
-    if(CompareImages(out_img_seq, img_name, img_width,                  \
-                     img_height))                                       \
-    {                                                                   \
-        ++(loop_timer.num_successes);                                   \
-    }                                                                   \
-    else                                                                \
-    {                                                                   \
+#define ReportResult(img_name, test_name)               \
+    if(CompareImages(out_img_seq, img_name, img_width,  \
+                     img_height))                       \
+    {                                                   \
+        ++(loop_timer.num_successes);                   \
+    }                                                   \
+    else                                                \
+    {                                                   \
     }
 
 #define TestLoop(out_img_ptr, conv_call, out_file_name, test_name)  \
-    std::cout << test_name << " loop started ..." << std::endl;     \
+    std::cout << "\x1b[37;1m" << test_name                          \
+    << " test loop started ..." << std::endl;                       \
     ResetLoopTimer(&loop_timer);                                    \
     real32* out_img_ptr = (real32*)malloc(sizeof(real32)*img_width  \
                                           *img_height);             \
+    /*std::cout << std::endl;*/                                     \
+    DrawProgressBar(0, loop_timer.num_iterations);                  \
     for(uint32 test=0 ; test<loop_timer.num_iterations ; ++test)    \
     {                                                               \
         memset(out_img_ptr, 0, sizeof(real32)*img_width             \
@@ -48,9 +55,12 @@ global_variable TestLoopTimer loop_timer;
         /*img_width, inputImagePath);*/                             \
         /*#endif*/                                                  \
         ReportResult(out_img_ptr, test_name);                       \
+        DrawProgressBar(test+1, loop_timer.num_iterations);         \
     }                                                               \
-    std::cout << test_name << " loop finished!" << std::endl;       \
-    ReportTotalResult();
+    std::cout << std::endl;                                         \
+    ReportTotalResult();                                            \
+    std::cout << test_name << " test loop finished!"                \
+    << std::endl << std::endl << std::endl;       
 
 #define SIMPLE 0
 #define CAT    1
@@ -68,6 +78,14 @@ int main()
     status = SetupOpenCL(&setup_options);
     CHECK_ERROR(status, "SetupOpenCL");
 
+    cl_kernel kernel;
+    status = SetupKernel("conv_kernel.cl", "conv_kernel", &kernel);
+    CHECK_ERROR(status, "SetupKernel");
+
+    cl_kernel naive_kernel;
+    status = SetupKernel("naive_conv_kernel.cl", "naive_conv_kernel", &naive_kernel);
+    CHECK_ERROR(status, "SetupKernel");
+    
 #if (CASE == CAT)
     //
     // Cat input case
@@ -109,110 +127,47 @@ int main()
 #else
     GenerateTestMask(msk, msk_width, msk_height);
 #endif
+
+    loop_timer.num_iterations = 10;
+    ConvWrapper wrapper;
     
     //
     // Sequential implementation test
     //
-    real32* out_img_seq = (real32*)malloc(sizeof(real32)*img_width
-                                          *img_height);
-    ConvWrapper wrapper = {
-        in_img, (uint32)img_width, (uint32)img_height,
-        msk, msk_width, msk_height,
-        out_img_seq
-    };
-    Seq_ApplyStencil(&wrapper);
-    
-#if (CASE == CAT)
-    writeBmpFloat(out_img_seq, "cat_seq.bmp", img_height,
-                  img_width, inputImagePath);
-#endif
-    std::cout  << std::endl;
+    TestLoop(out_img_seq, Seq_ApplyStencil(&wrapper),
+             "cat_seq.bmp", "Sequential");
 
     loop_timer.num_iterations = 10;
 
     //
+    // Pure GPU test
+    //
+    TestLoop(out_img_gpu, GPU_ApplyStencil(&wrapper, naive_kernel),
+             "cat_fine_gpu.bmp", "Pure GPU");
+    
+    //
     // Coarse non-SVM test
     //
-    TestLoop(out_img_coarse, Coarse_ApplyStencil(&wrapper, false),
+    TestLoop(out_img_coarse, Coarse_ApplyStencil(&wrapper, kernel),
              "cat_coarse.bmp", "Coarse non-SVM");
     
     //
     // Coarse SVM test
     //
-    TestLoop(out_img_coarse_svm, CoarseSVM_ApplyStencil(&wrapper, false),
+    TestLoop(out_img_coarse_svm, CoarseSVM_ApplyStencil(&wrapper, kernel),
              "cat_coarse_svm.bmp", "Coarse SVM");
 
     //
     // Fine SVM test
     //
-    TestLoop(out_img_fine_svm, FineSVM_ApplyStencil(&wrapper, false, true),
+    TestLoop(out_img_fine_svm, FineSVM_ApplyStencil(&wrapper, kernel, true),
              "cat_fine_svm.bmp", "Fine SVM");
 
-    //TestLoop(out_img_fine_svm2, FineSVM_ApplyStencil(&wrapper, false, false),
-    //         "cat_fine_svm2.bmp", "Fine SVM2");
-
-#if 0
-    //
-    // Coarse non-SVM test (unrolled)
-    //
-    free(out_img_coarse);    
-    out_img_coarse = (real32*)malloc(sizeof(real32)*img_width
-                                             *img_height);
-    wrapper = {
-        in_img, (uint32)img_width, (uint32)img_height,
-        msk, msk_width, msk_height,
-        out_img_coarse
-    };
-    Coarse_ApplyStencil(&wrapper);
-#if (CASE == CAT)
-    writeBmpFloat(out_img_coarse, "cat_coarse_unrolled.bmp",
-                  img_height,
-                  img_width, inputImagePath);
-#endif
-    ReportResult(out_img_coarse, Coarse (non-SVM));
-    
-    //
-    // Coarse SVM test (unrolled)
-    //
-    free(out_img_coarse_svm);
-    out_img_coarse_svm = (real32*)malloc(
-        sizeof(real32)*img_width*img_height);
-    wrapper = {
-        in_img, (uint32)img_width, (uint32)img_height,
-        msk, msk_width, msk_height,
-        out_img_coarse_svm
-    };
-    CoarseSVM_ApplyStencil(&wrapper);
-#if (CASE == CAT)
-    writeBmpFloat(out_img_coarse_svm, "cat_coarse_svm_unrolled.bmp",
-                  img_height,
-                  img_width, inputImagePath);
-#endif
-    ReportResult(out_img_coarse_svm, Coarse (SVM));
-
-    //
-    // Fine SVM test (unrolled)
-    //
-    free(out_img_fine_svm);
-    out_img_fine_svm = (real32*)malloc(
-        sizeof(real32)*img_width*img_height);
-    wrapper = {
-        in_img, (uint32)img_width, (uint32)img_height,
-        msk, msk_width, msk_height,
-        out_img_fine_svm
-    };
-    FineSVM_ApplyStencil(&wrapper);
-#if (CASE == CAT)
-    writeBmpFloat(out_img_fine_svm, "cat_fine_svm_unrolled.bmp",
-                  img_height,
-                  img_width, inputImagePath);
-#endif
-    ReportResult(out_img_fine_svm, Fine (SVM));
-#endif
     free(in_img);
     free(msk);
     free(out_img_seq);
     free(out_img_coarse_svm);
+    free(out_img_gpu);
     
     return 0;
 }
