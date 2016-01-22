@@ -77,11 +77,23 @@ global_variable cl_context       context;
 global_variable cl_command_queue queue;
 
 global_variable cl_program       program;
-//global_variable cl_kernel        kernel;
 
 //
 // Image related util functions
 //
+struct ConvWrapper
+{
+    real32* in_img;
+    uint32 img_width;
+    uint32 img_height;
+
+    real32* msk;
+    uint32 msk_width;
+    uint32 msk_height;
+
+    real32* out_img;
+};
+
 void Print2DArray(std::string message, real32* array, uint32 width,
                   uint32 height);
 
@@ -133,16 +145,27 @@ int PrintBufferContents_Uint32(cl_mem buf, uint32 size,
 //
 // Test case timing utils
 //
+
 struct TestCaseTimer
 {
     clock_t start;
     bool working;
 };
 
-TestCaseTimer timer;
+struct TestLoopTimer
+{
+    TestCaseTimer timer;
+    
+    uint32 num_iterations;
+    uint32 num_successes;
 
-void TestCaseStarted();
+    real64 total_time;
+};
 
-real64 TestCaseFinished();
+void ResetLoopTimer(TestLoopTimer* loop_timer);
+
+void TestCaseStarted(TestLoopTimer* loop_timer);
+
+real64 TestCaseFinished(TestLoopTimer* loop_timer);
 
 #endif

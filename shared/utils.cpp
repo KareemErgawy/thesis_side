@@ -1,5 +1,7 @@
 #include <utils.h>
 #include <assert.h>
+#include <time.h>
+#include <stdlib.h>
 
 #define KiloBytes(bytes) (bytes) / 1024
 #define MegaBytes(bytes) KiloBytes(bytes) / 1024
@@ -45,12 +47,13 @@ void GenerateRandomImage(real32* img, uint32 img_width,
                      uint32 img_height)
 {
     uint32 c, r;
+    srand ((unsigned int)time(NULL));
     
     for(c=0 ; c<img_width ; c++)
     {
         for(r=0 ; r<img_height ; r++)
         {
-            
+            img[(r*img_width) + c] = (real32)(rand() % 255);
         }
     }
 }
@@ -490,22 +493,28 @@ int PrintBufferContents_Uint32(cl_mem buf, uint32 size, std::string name,
     return SUCCESS;
 }
 
-
-void TestCaseStarted()
+void ResetLoopTimer(TestLoopTimer* loop_timer)
 {
-    assert(!timer.working);
-
-    timer.working = true;
-    timer.start = clock();
+    loop_timer->num_successes = 0;
+    loop_timer->total_time = 0;
 }
 
-real64 TestCaseFinished()
+void TestCaseStarted(TestLoopTimer* loop_timer)
 {
-    assert(timer.working);
+    assert(!loop_timer->timer.working);
 
-    timer.working = false;
-    clock_t diff = clock() - timer.start;
+    loop_timer->timer.working = true;
+    loop_timer->timer.start = clock();
+}
 
-    std::cout << "time elapsed = " << diff << std::endl;
+real64 TestCaseFinished(TestLoopTimer* loop_timer)
+{
+    assert(loop_timer->timer.working);
+
+    loop_timer->timer.working = false;
+    clock_t diff = clock() - loop_timer->timer.start;
+
+    loop_timer->total_time += ((real64)diff / CLOCKS_PER_SEC) * 1000.0;
+    //std::cout << "time elapsed = " << diff << std::endl;
     return diff;
 }
