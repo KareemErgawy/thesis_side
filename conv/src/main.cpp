@@ -7,12 +7,16 @@ global_variable TestLoopTimer loop_timer;
 #include <coarse/conv_coarse_svm.cpp>
 #include <fine/conv_fine_svm.cpp>
 #include <gpu/conv_gpu.cpp>
+#include <gpu/conv_gpu_opt.cpp>
 
 #define ReportTotalResult()                                         \
     std::cout << "\x1b[33;1mTotal elapsed time:\t\t"                \
     << loop_timer.total_time << "(ms)"  << std::endl                \
     << "Average:\t\t\t" << ((real32)loop_timer.total_time           \
                             /(real32)loop_timer.num_iterations)     \
+    << "(ms)" << std::endl                                          \
+    << "Median:\t\t\t\t"                                            \
+    << GetMedian(&loop_timer)                                       \
     << "(ms)" << std::endl                                          \
     << ((loop_timer.num_successes < loop_timer.num_iterations) ?    \
         "\x1b[31;1m" : "\x1b[32;1m")                                \
@@ -50,10 +54,6 @@ global_variable TestLoopTimer loop_timer;
             out_img_ptr                                             \
         };                                                          \
         conv_call;                                                  \
-        /*#if (CASE == CAT)*/                                       \
-        /*writeBmpFloat(out_img_ptr, out_file_name, img_height,*/   \
-        /*img_width, inputImagePath);*/                             \
-        /*#endif*/                                                  \
         ReportResult(out_img_ptr, test_name);                       \
         DrawProgressBar(test+1, loop_timer.num_iterations);         \
     }                                                               \
@@ -85,6 +85,28 @@ int main()
     cl_kernel naive_kernel;
     status = SetupKernel("naive_conv_kernel.cl", "naive_conv_kernel", &naive_kernel);
     CHECK_ERROR(status, "SetupKernel");
+
+    cl_program gaussian_opt_prog;
+    status = SetupProgram("gaussian.cl", &gaussian_opt_prog);
+    CHECK_ERROR(status, "SetupProgram");
+    
+    cl_kernel gaussian_opt_kernels[9];
+    std::string kernel_names[9] = {std::string("gaussian_tl"),
+                                   std::string("gaussian_t"),
+                                   std::string("gaussian_tr"),
+                                   std::string("gaussian_ml"),
+                                   std::string("gaussian_m"),
+                                   std::string("gaussian_mr"),
+                                   std::string("gaussian_bl"),
+                                   std::string("gaussian_b"),
+                                   std::string("gaussian_br")};
+    
+    for(int k_idx=0 ; k_idx<9 ; ++k_idx)
+    {
+        status = SetupKernel(gaussian_opt_prog, kernel_names[k_idx],
+                    &gaussian_opt_kernels[k_idx]);
+        CHECK_ERROR(status, "SetupKernel");
+    }
     
 #if (CASE == CAT)
     //
@@ -128,7 +150,7 @@ int main()
     GenerateTestMask(msk, msk_width, msk_height);
 #endif
 
-    loop_timer.num_iterations = 10;
+    loop_timer.num_iterations = 7;
     ConvWrapper wrapper;
     
     //
@@ -137,13 +159,20 @@ int main()
     TestLoop(out_img_seq, Seq_ApplyStencil(&wrapper),
              "cat_seq.bmp", "Sequential");
 
-    loop_timer.num_iterations = 10;
-
+    loop_timer.num_iterations = 7;
+    
     //
     // Pure GPU test
     //
     TestLoop(out_img_gpu, GPU_ApplyStencil(&wrapper, naive_kernel),
              "cat_fine_gpu.bmp", "Pure GPU");
+
+    //
+    // Optimized GPU test
+    //
+    TestLoop(out_img_gpu_opt, GPU_Opt_ApplyStencil(&wrapper, gaussian_opt_kernels),
+             "cat_fine_gpu_opt.bmp", "Optimized GPU");
+
     
     //
     // Coarse non-SVM test
@@ -168,6 +197,7 @@ int main()
     free(out_img_seq);
     free(out_img_coarse_svm);
     free(out_img_gpu);
-    
+    free(out_img_gpu_opt);
+
     return 0;
 }

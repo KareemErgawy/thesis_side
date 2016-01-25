@@ -10,6 +10,7 @@
 #include <stdint.h>
 #include <time.h>
 #include <CL/cl.h>
+#include <queue>
 
 #include <Utils/bmp-utils.c>
 
@@ -126,10 +127,14 @@ bool CompareArrays(uint32* a1, uint32* a2, uint32 len);
 //
 int SetupOpenCL();
 
+int SetupProgram(std::string prgoram_file_name, cl_program* program_ptr);
+
 int SetupKernel(std::string kernel_file_name,
                 std::string kernel_name, cl_kernel* kernel_ptr);
 
 int SetupKernel(std::string kernel_name, cl_kernel* kernel_ptr);
+
+int SetupKernel(cl_program program, std::string kernel_name, cl_kernel* kernel_ptr);
 
 int DisplayDeviceSVMCaps(cl_device_id device);
 
@@ -158,6 +163,7 @@ struct TestLoopTimer
     
     uint32 num_iterations;
     uint32 num_successes;
+    std::vector<real64> times;
 
     real64 total_time;
 };

@@ -120,14 +120,24 @@ void ApplyStencilBoundaryStep(ConvWrapper* wrapper, uint32 row, uint32 col)
             int32 c1 = c + col;
 
 //            std::cout << col << " " << c1 << " " << c << " ";
-            
+
+            /*
             // Mirror if < 0
             r1 = (r1 < 0) ? (-r-1) : r1;
             c1 = (c1 < 0) ? (-c-1) : c1;
             // Mirror if > dim
             r1 = (r1 >= (int32)wrapper->img_height) ? wrapper->img_height-r : r1;
             c1 = (c1 >= (int32)wrapper->img_width) ? wrapper->img_width-c : c1;
+            */
+            
+            // Mirror if < 0
+            r1 = (r1 < 0) ? 0 : r1;
+            c1 = (c1 < 0) ? 0 : c1;
+            // Mirror if > dim
+            r1 = (r1 >= (int32)wrapper->img_height) ? wrapper->img_height-1 : r1;
+            c1 = (c1 >= (int32)wrapper->img_width) ? wrapper->img_width-1 : c1;
 
+            
 //            std::cout << c1 << std::endl;
             assert(r1 >= 0);
             assert(c1 >= 0);

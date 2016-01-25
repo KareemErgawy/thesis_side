@@ -27,12 +27,20 @@ __kernel void naive_conv_kernel(__global float* in_img, int img_width,
             int r1 = r + row;
             int c1 = c + col;
 
+            /*
             // Mirror if < 0
             r1 = (r1 < 0) ? (-r-1) : r1;
             c1 = (c1 < 0) ? (-c-1) : c1;
             // Mirror if > dim
             r1 = (r1 >= img_height) ? img_height-r : r1;
             c1 = (c1 >= img_width) ? img_width-c : c1;
+            */
+
+            r1 = (r1 < 0) ? 0 : r1;
+            c1 = (c1 < 0) ? 0 : c1;
+            // Mirror if > dim
+            r1 = (r1 >= img_height) ? img_height-1 : r1;
+            c1 = (c1 >= img_width) ? img_width-1 : c1;
 
             out_img[out_index]
                 += (in_img[(r1*img_width)+c1]

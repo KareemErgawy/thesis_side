@@ -97,35 +97,35 @@ void GenerateTestMask(real32* msk, uint32 msk_width,
 
 void GenerateGaussianBlurFilter_5X5(real32* msk)
 {
-    msk[0] =  1.0f/273.0f;
-    msk[1] =  4.0f/273.0f;
-    msk[2] =  7.0f/273.0f;
-    msk[3] =  4.0f/273.0f;
-    msk[4] =  1.0f/273.0f;
+    msk[0] = 0.005008f;
+    msk[1] = 0.017300f;
+    msk[2] = 0.026151f;
+    msk[3] = 0.017300f;
+    msk[4] = 0.005008f;
 
-    msk[5] =  4.0f/273.0f;
-    msk[6] = 16.0f/273.0f;
-    msk[7] = 26.0f/273.0f;
-    msk[8] = 16.0f/273.0f;
-    msk[9] =  4.0f/273.0f;
+    msk[5] = 0.017300f;
+    msk[6] = 0.059761f;
+    msk[7] = 0.090339f;
+    msk[8] = 0.059761f;
+    msk[9] = 0.017300f;
+    
+    msk[10] = 0.026151f;
+    msk[11] = 0.090339f;
+    msk[12] = 0.136565f;
+    msk[13] = 0.090339f;
+    msk[14] = 0.026151f;
+    
+    msk[15] = 0.017300f;
+    msk[16] = 0.059761f;
+    msk[17] = 0.090339f;
+    msk[18] = 0.059761f;
+    msk[19] = 0.017300f;
 
-    msk[10] =  7.0f/273.0f;
-    msk[11] = 26.0f/273.0f;
-    msk[12] = 41.0f/273.0f;
-    msk[13] = 26.0f/273.0f;
-    msk[14] =  7.0f/273.0f;
-
-    msk[15] =  4.0f/273.0f;
-    msk[16] = 16.0f/273.0f;
-    msk[17] = 26.0f/273.0f;
-    msk[18] = 16.0f/273.0f;
-    msk[19] =  4.0f/273.0f;
-
-    msk[20] =  1.0f/273.0f;
-    msk[21] =  4.0f/273.0f;
-    msk[22] =  7.0f/273.0f;
-    msk[23] =  4.0f/273.0f;
-    msk[24] =  1.0f/273.0f;
+    msk[20] = 0.005008f;
+    msk[21] = 0.017300f;
+    msk[22] = 0.026151f;
+    msk[23] = 0.017300f;
+    msk[24] = 0.005008f;
 }
 
 bool CompareImages(real32* img1, real32* img2, uint32 width,
@@ -279,6 +279,36 @@ int SetupOpenCL(SetupOptions* setup_options=NULL)
     return SUCCESS;
 }
 
+int SetupProgram(std::string program_file_name, cl_program* program_ptr)
+{
+    cl_int status;
+    std::ifstream source_file(std::string("..\\kernels\\") + program_file_name.c_str());
+
+    if (!source_file)
+    {
+        return 1;
+    }
+
+    std::string source_code(std::istreambuf_iterator<char>(
+                                source_file),
+                            (std::istreambuf_iterator<char>()));
+
+    const char* source = source_code.c_str();
+    size_t source_size[] = {strlen(source)};
+    
+    *program_ptr = clCreateProgramWithSource(context, 1, &source,
+                                        source_size, &status);
+    CHECK_OPENCL_ERROR(status, "clCreateProgramWithSource");
+
+    std::string flags_str = "-I ./ -cl-std=CL2.0";
+
+    status = clBuildProgram(*program_ptr, 1, &device, flags_str.c_str(),
+                            NULL, NULL);
+    CHECK_OPENCL_ERROR(status, "clBuildProgram");
+
+    return SUCCESS;
+}
+
 int SetupKernel(std::string kernel_file_name, std::string kernel_name,
                 cl_kernel* kernel_ptr)
 {
@@ -314,6 +344,15 @@ int SetupKernel(std::string kernel_file_name, std::string kernel_name,
 }
 
 int SetupKernel(std::string kernel_name, cl_kernel* kernel_ptr)
+{
+    cl_int status;
+    *kernel_ptr = clCreateKernel(program, kernel_name.c_str(), &status);
+    CHECK_OPENCL_ERROR(status, "clCreateKernel");
+    
+    return SUCCESS;
+}
+
+int SetupKernel(cl_program program, std::string kernel_name, cl_kernel* kernel_ptr)
 {
     cl_int status;
     *kernel_ptr = clCreateKernel(program, kernel_name.c_str(), &status);
@@ -497,6 +536,7 @@ void ResetLoopTimer(TestLoopTimer* loop_timer)
 {
     loop_timer->num_successes = 0;
     loop_timer->total_time = 0;
+    loop_timer->times.clear();
 }
 
 void TestCaseStarted(TestLoopTimer* loop_timer)
@@ -513,8 +553,10 @@ real64 TestCaseFinished(TestLoopTimer* loop_timer)
 
     loop_timer->timer.working = false;
     clock_t diff = clock() - loop_timer->timer.start;
-
-    loop_timer->total_time += ((real64)diff / CLOCKS_PER_SEC) * 1000.0;
+    real64 time = ((real64)diff / CLOCKS_PER_SEC) * 1000.0;
+    
+    loop_timer->total_time += time;
+    loop_timer->times.push_back(time);
     //std::cout << "time elapsed = " << diff << std::endl;
     return diff;
 }
@@ -539,4 +581,11 @@ void DrawProgressBar(uint32 cur, uint32 target)
 
     bar += "]";
     std::cout << "\33[2K\r" << bar;
+}
+
+real64 GetMedian(TestLoopTimer* loop_timer)
+{
+    std::sort(loop_timer->times.begin(), loop_timer->times.end());
+
+    return loop_timer->times[loop_timer->num_iterations / 2];
 }
