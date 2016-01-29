@@ -198,6 +198,6 @@ int main()
     free(out_img_coarse_svm);
     free(out_img_gpu);
     free(out_img_gpu_opt);
-
+    
     return 0;
 }

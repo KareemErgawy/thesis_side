@@ -25,17 +25,17 @@ int GPU_Opt_ApplyStencil(ConvWrapper* wrapper, cl_kernel kernels[9])
                                   wrapper->in_img, 0, NULL, NULL);
     CHECK_OPENCL_ERROR(status, "clEnqueueWriteBuffer");
 
-    kernel_config configs[9] = {kernel_config{  32,    4, 32, 4},
-                                kernel_config{4032,    4, 32, 4},
-                                kernel_config{  32,    4, 32, 4},
+    kernel_config configs[9] = {kernel_config{{  32,    4}, {32, 4}},
+                                kernel_config{{4032,    4}, {32, 4}},
+                                kernel_config{{  32,    4}, {32, 4}},
                                 
-                                kernel_config{  32, 4088, 32, 4},
-                                kernel_config{4032, 4088, 32, 4},
-                                kernel_config{  32, 4088, 32, 4},
+                                kernel_config{{  32, 4088}, {32, 4}},
+                                kernel_config{{4032, 4088}, {32, 4}},
+                                kernel_config{{  32, 4088}, {32, 4}},
 
-                                kernel_config{  32,    4, 32, 4},
-                                kernel_config{4032,    4, 32, 4},
-                                kernel_config{  32,    4, 32, 4}};
+                                kernel_config{{  32,    4}, {32, 4}},
+                                kernel_config{{4032,    4}, {32, 4}},
+                                kernel_config{{  32,    4}, {32, 4}}};
     
     for(int k_idx=0 ; k_idx<9 ; ++k_idx)
     {

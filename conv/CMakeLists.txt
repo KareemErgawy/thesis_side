@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 2.8.9)
 project(conv)
-set(ENV{AMDAPPSDKROOT} "/opt/AMD-APP-SDK")
+
+#set(ENV{OPENCLROOT} "/opt/AMD-APP-SDK")
+set(ENV{OPENCLROOT} "C:/Program Files (x86)/Intel/OpenCL SDK/5.3/")
+
 set(CMAKE_BUILD_TYPE Release)
 
 file(GLOB_RECURSE EXTRA_FILES "src/*.cl")
@@ -9,13 +12,13 @@ file(GLOB_RECURSE EXTRA_FILES "src/*.cl")
 # Find OpenCL include and libs
 find_path( OPENCL_INCLUDE_DIRS 
     NAMES OpenCL/cl.h CL/cl.h
-    HINTS $ENV{AMDAPPSDKROOT}/include/
+    HINTS $ENV{OPENCLROOT}/include/
 )
 mark_as_advanced(OPENCL_INCLUDE_DIRS)
 
 find_library( OPENCL_LIBRARIES
     NAMES OpenCL
-    HINTS $ENV{AMDAPPSDKROOT}/lib
+    HINTS $ENV{OPENCLROOT}/lib
     PATH_SUFFIXES ${PLATFORM}${BITNESS} ${BITNESS_SUFFIX}
 )
 mark_as_advanced( OPENCL_LIBRARIES )
@@ -28,7 +31,7 @@ endif( )
 
 ############################################################################
 
-include_directories( ../shared src  ${OPENCL_INCLUDE_DIRS} ../../../../../include/SDKUtil $ENV{AMDAPPSDKROOT}/include/SDKUtil )
+include_directories( ../shared src  ${OPENCL_INCLUDE_DIRS} ../../../../../include/SDKUtil $ENV{OPENCLROOT}/include/SDKUtil )
 
 #However, the file(GLOB...) allows for wildcard additions:
 file(GLOB SOURCE_FILES "src/main.cpp")
