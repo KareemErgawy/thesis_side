@@ -77,13 +77,13 @@ int FineSVM_ApplyStencil(ConvWrapper* wrapper, cl_kernel kernel, bool wait_kerne
 }
 
 int FineSVM_AllocateSVMObjects(real32** svm_in_img, real32** svm_msk, real32** svm_out_img,
-                       uint32 img_size, uint32 msk_size)
+                               uint32 img_size, uint32 msk_size)
 {
     (*svm_in_img) = (real32*)clSVMAlloc(context,
                                         CL_MEM_READ_WRITE
                                         | CL_MEM_SVM_FINE_GRAIN_BUFFER
                                         | CL_MEM_SVM_ATOMICS,
-                                     img_size*sizeof(real32), 0);
+                                        img_size*sizeof(real32), 0);
     CHECK_ALLOCATION(*svm_in_img, "in_img");
         
     (*svm_msk) = (real32*)clSVMAlloc(context,

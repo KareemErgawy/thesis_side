@@ -50,10 +50,21 @@ typedef double real64;
                   << std::endl;                                     \
         std::cout << "Location : " << __FILE__ << ":" << __LINE__   \
                   << std::endl;                                     \
-        if(funcName == "clBuildProgram")                            \
-        {                                                           \
-            PrintCompilerError(program, device);                    \
-        }                                                           \
+        return CL_CALL_FAILURE;                                     \
+    }                                                               \
+    else                                                            \
+    {                                                               \
+        /*std::cout << msg << " Fine" << std::endl;*/               \
+    }
+
+#define CHECK_OPENCL_BUILD_ERROR(status, funcName, device)          \
+    if(status != CL_SUCCESS)                                        \
+    {                                                               \
+        std::cout << "Error " << status << " calling " << funcName  \
+                  << std::endl;                                     \
+        std::cout << "Location : " << __FILE__ << ":" << __LINE__   \
+                  << std::endl;                                     \
+        PrintCompilerError(program, device);                        \
         return CL_CALL_FAILURE;                                     \
     }                                                               \
     else                                                            \
@@ -73,9 +84,12 @@ typedef double real64;
 
 global_variable cl_platform_id   platform;
 global_variable cl_device_id*    devices;
-global_variable cl_device_id     device;
 global_variable cl_context       context;
-global_variable cl_command_queue queue;
+
+global_variable cl_device_id     gpu_device;
+global_variable cl_device_id     cpu_device;
+global_variable cl_command_queue gpu_queue;
+global_variable cl_command_queue cpu_queue;
 
 global_variable cl_program       program;
 
@@ -93,6 +107,12 @@ struct ConvWrapper
     uint32 msk_height;
 
     real32* out_img;
+};
+
+struct kernel_config
+{
+    size_t global[2];
+    size_t local[2];
 };
 
 void Print2DArray(std::string message, real32* array, uint32 width,
@@ -129,10 +149,14 @@ int SetupOpenCL();
 
 int SetupProgram(std::string prgoram_file_name, cl_program* program_ptr);
 
+int SetupProgram(bool gpu, std::string program_file_name,
+                 cl_program* program_ptr);
+
 int SetupKernel(std::string kernel_file_name,
                 std::string kernel_name, cl_kernel* kernel_ptr);
 
-int SetupKernel(std::string kernel_name, cl_kernel* kernel_ptr);
+int SetupKernel(bool gpu, std::string kernel_file_name,
+                std::string kernel_name, cl_kernel* kernel_ptr);
 
 int SetupKernel(cl_program program, std::string kernel_name, cl_kernel* kernel_ptr);
 

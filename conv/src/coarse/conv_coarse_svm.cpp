@@ -96,7 +96,7 @@ int SVMHandleAllBoundries(ConvWrapper* wrapper, real32* svm_in_img,
     
     // Map SVM objects into the host address space to copy input
     // data and handle the boundaries
-    status = clEnqueueSVMMap(queue, CL_TRUE,
+    status = clEnqueueSVMMap(gpu_queue, CL_TRUE,
                              CL_MAP_WRITE_INVALIDATE_REGION,
                              svm_in_img, img_size*sizeof(real32),
                              0, NULL, NULL);
@@ -106,14 +106,14 @@ int SVMHandleAllBoundries(ConvWrapper* wrapper, real32* svm_in_img,
     // input image, will be for initialization
     std::memcpy(svm_in_img, wrapper->in_img, img_size*sizeof(real32));
 
-    status = clEnqueueSVMMap(queue, CL_TRUE,
+    status = clEnqueueSVMMap(gpu_queue, CL_TRUE,
                              CL_MAP_WRITE_INVALIDATE_REGION,
                              svm_msk, msk_size*sizeof(real32),
                              0, NULL, NULL);
     CHECK_OPENCL_ERROR(status, "clEnqueueSVMMap");
     std::memcpy(svm_msk, wrapper->msk, msk_size*sizeof(real32));
 
-    status = clEnqueueSVMMap(queue, CL_TRUE,
+    status = clEnqueueSVMMap(gpu_queue, CL_TRUE,
                              CL_MAP_WRITE_INVALIDATE_REGION,
                              svm_out_img, img_size*sizeof(real32),
                              0, NULL, NULL);
@@ -130,11 +130,11 @@ int SVMHandleAllBoundries(ConvWrapper* wrapper, real32* svm_in_img,
     temp.out_img = svm_out_img;
     HandleAllBoundries(&temp);
         
-    status = clEnqueueSVMUnmap(queue, svm_in_img, 0, NULL, NULL);
+    status = clEnqueueSVMUnmap(gpu_queue, svm_in_img, 0, NULL, NULL);
     CHECK_OPENCL_ERROR(status, "clEnqueueSVMUnmap");
-    status = clEnqueueSVMUnmap(queue, svm_msk, 0, NULL, NULL);
+    status = clEnqueueSVMUnmap(gpu_queue, svm_msk, 0, NULL, NULL);
     CHECK_OPENCL_ERROR(status, "clEnqueueSVMUnmap");
-    status = clEnqueueSVMUnmap(queue, svm_out_img, 0, NULL, NULL);
+    status = clEnqueueSVMUnmap(gpu_queue, svm_out_img, 0, NULL, NULL);
     CHECK_OPENCL_ERROR(status, "clEnqueueSVMUnmap");
     
     return status;
@@ -205,7 +205,7 @@ int SVMHandleInnerRegions(ConvWrapper* wrapper, real32* svm_in_img, real32* svm_
     local[0] = local_dim;
     local[1] = local_dim;
 
-    status = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, global,
+    status = clEnqueueNDRangeKernel(gpu_queue, kernel, 2, NULL, global,
                                     local, 0, NULL, kernel_evt);
     CHECK_OPENCL_ERROR(status, "clEnqueueNDRangeKernel");
 
@@ -215,14 +215,14 @@ int SVMHandleInnerRegions(ConvWrapper* wrapper, real32* svm_in_img, real32* svm_
 cl_int CopyOutputFromSVM(real32* out_img, real32* svm_out_img, uint32 img_size)
 {
     cl_int status;
-    status = clEnqueueSVMMap(queue, CL_TRUE, CL_MAP_READ,
+    status = clEnqueueSVMMap(gpu_queue, CL_TRUE, CL_MAP_READ,
                              svm_out_img, img_size*sizeof(real32),
                              0, NULL, NULL);
     CHECK_OPENCL_ERROR(status, "clEnqueueSVMMap");
     
     std::memcpy(out_img, svm_out_img, img_size*sizeof(real32));
 
-    status = clEnqueueSVMUnmap(queue, svm_out_img, 0, NULL, NULL);
+    status = clEnqueueSVMUnmap(gpu_queue, svm_out_img, 0, NULL, NULL);
     CHECK_OPENCL_ERROR(status, "clEnqueueSVMUnmap");
     
     return status;

@@ -8,6 +8,7 @@ global_variable TestLoopTimer loop_timer;
 #include <fine/conv_fine_svm.cpp>
 #include <gpu/conv_gpu.cpp>
 #include <gpu/conv_gpu_opt.cpp>
+#include <fine/conv_fine_svm_opt.cpp>
 
 #define ReportTotalResult()                                         \
     std::cout << "\x1b[33;1mTotal elapsed time:\t\t"                \
@@ -86,25 +87,38 @@ int main()
     status = SetupKernel("naive_conv_kernel.cl", "naive_conv_kernel", &naive_kernel);
     CHECK_ERROR(status, "SetupKernel");
 
-    cl_program gaussian_opt_prog;
-    status = SetupProgram("gaussian.cl", &gaussian_opt_prog);
+    cl_program gpu_gaussian_opt_prog;
+    status = SetupProgram("gaussian.cl", &gpu_gaussian_opt_prog);
     CHECK_ERROR(status, "SetupProgram");
     
-    cl_kernel gaussian_opt_kernels[9];
+    cl_kernel gpu_gaussian_opt_kernels[9];
     std::string kernel_names[9] = {std::string("gaussian_tl"),
                                    std::string("gaussian_t"),
                                    std::string("gaussian_tr"),
                                    std::string("gaussian_ml"),
-                                   std::string("gaussian_m"),
                                    std::string("gaussian_mr"),
                                    std::string("gaussian_bl"),
                                    std::string("gaussian_b"),
-                                   std::string("gaussian_br")};
+                                   std::string("gaussian_br"),
+                                   std::string("gaussian_m")};
     
     for(int k_idx=0 ; k_idx<9 ; ++k_idx)
     {
-        status = SetupKernel(gaussian_opt_prog, kernel_names[k_idx],
-                    &gaussian_opt_kernels[k_idx]);
+        status = SetupKernel(gpu_gaussian_opt_prog, kernel_names[k_idx],
+                    &gpu_gaussian_opt_kernels[k_idx]);
+        CHECK_ERROR(status, "SetupKernel");
+    }
+
+    cl_program cpu_gaussian_opt_prog;
+    status = SetupProgram(false, "gaussian.cl", &cpu_gaussian_opt_prog);
+    CHECK_ERROR(status, "SetupProgram");
+
+    cl_kernel cpu_gaussian_opt_kernels[8];
+    
+    for(int k_idx=0 ; k_idx<8 ; ++k_idx)
+    {
+        status = SetupKernel(cpu_gaussian_opt_prog, kernel_names[k_idx],
+                    &cpu_gaussian_opt_kernels[k_idx]);
         CHECK_ERROR(status, "SetupKernel");
     }
     
@@ -150,7 +164,7 @@ int main()
     GenerateTestMask(msk, msk_width, msk_height);
 #endif
 
-    loop_timer.num_iterations = 7;
+    loop_timer.num_iterations = 2;
     ConvWrapper wrapper;
     
     //
@@ -170,9 +184,8 @@ int main()
     //
     // Optimized GPU test
     //
-    TestLoop(out_img_gpu_opt, GPU_Opt_ApplyStencil(&wrapper, gaussian_opt_kernels),
+    TestLoop(out_img_gpu_opt, GPU_Opt_ApplyStencil(&wrapper, gpu_gaussian_opt_kernels),
              "cat_fine_gpu_opt.bmp", "Optimized GPU");
-
     
     //
     // Coarse non-SVM test
@@ -192,12 +205,23 @@ int main()
     TestLoop(out_img_fine_svm, FineSVM_ApplyStencil(&wrapper, kernel, true),
              "cat_fine_svm.bmp", "Fine SVM");
 
+    //
+    // Fine SVM test
+    //
+    TestLoop(out_img_fine_svm_opt, FineSVM_Opt_ApplyStencil(&wrapper,
+                                                            cpu_gaussian_opt_kernels,
+                                                            gpu_gaussian_opt_kernels[8]),
+             "cat_fine_svm.bmp", "Fine SVM");
+
     free(in_img);
     free(msk);
     free(out_img_seq);
-    free(out_img_coarse_svm);
     free(out_img_gpu);
     free(out_img_gpu_opt);
-    
+    free(out_img_coarse);
+    free(out_img_coarse_svm);
+    free(out_img_fine_svm);
+    free(out_img_fine_svm_opt);
+ 
     return 0;
 }

@@ -13,10 +13,4 @@
 // 8 - bottom right
 int GPU_Opt_ApplyStencil(ConvWrapper* wrapper, cl_kernel kernels[9]);
 
-struct kernel_config
-{
-    size_t global[2];
-    size_t local[2];
-};
-
 #endif

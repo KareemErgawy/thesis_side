@@ -244,7 +244,7 @@ int SetupOpenCL(SetupOptions* setup_options=NULL)
             0
         };
 
-    context = clCreateContextFromType(cps, CL_DEVICE_TYPE_GPU, NULL,
+    context = clCreateContextFromType(cps, CL_DEVICE_TYPE_GPU | CL_DEVICE_TYPE_CPU, NULL,
                                       NULL, &status);
     CHECK_OPENCL_ERROR(status, "clCreateContextFromType");
     
@@ -264,23 +264,62 @@ int SetupOpenCL(SetupOptions* setup_options=NULL)
 
     for(size_t i=0 ; i<deviceCount ; i++)
     {
+        char device_name[50];
+        status = clGetDeviceInfo(devices[i], CL_DEVICE_NAME, sizeof(device_name),
+                                 device_name, 0);
+        CHECK_OPENCL_ERROR(status, "clGetDeviceInfo");
+        std::cout << device_name << std::endl;
+
+        cl_device_type device_type;
+        status = clGetDeviceInfo(devices[i], CL_DEVICE_TYPE, sizeof(device_type),
+                                 &device_type, 0);
+        CHECK_OPENCL_ERROR(status, "clGetDeviceInfo");
+
+        if(device_type == CL_DEVICE_TYPE_CPU)
+        {
+            std::cout << "CPU Device";
+            cpu_device = devices[i];
+            cl_queue_properties prop[] = {0};
+            cpu_queue = clCreateCommandQueueWithProperties(context, devices[i], prop,
+                                                       &status);
+            CHECK_OPENCL_ERROR(status, "clCreateCommandQueueWithProperties");
+        }
+        else if(device_type == CL_DEVICE_TYPE_GPU)
+        {
+            std::cout << "GPU Device";
+            gpu_device = devices[i];
+            cl_queue_properties prop[] = {0};
+            gpu_queue = clCreateCommandQueueWithProperties(context, devices[i], prop,
+                                                       &status);
+            CHECK_OPENCL_ERROR(status, "clCreateCommandQueueWithProperties");
+        }
+        else
+        {
+            std::cout << "\x1b[31;1mUnexpected device: " << device_type
+                      << ", why is this here?!\x1b[0m";
+        }
+
+        std::cout << std::endl;
+        
         DisplayDeviceSVMCaps(devices[i]);
         DisplayDeviceMemoryCaps(devices[i]);
         DisplayDeviceWorkRangeInfo(devices[i]);
-    }
-    
-    device = devices[0];
 
-    cl_queue_properties prop[] = {0};
-    queue = clCreateCommandQueueWithProperties(context, device, prop,
-                                               &status);
-    CHECK_OPENCL_ERROR(status, "clCreateCommandQueueWithProperties");
+        std::cout << "==============================" << std::endl << std::endl;
+    }
     
     return SUCCESS;
 }
 
 int SetupProgram(std::string program_file_name, cl_program* program_ptr)
 {
+    return SetupProgram(true, program_file_name, program_ptr);
+}
+    
+int SetupProgram(bool gpu, std::string program_file_name,
+                 cl_program* program_ptr)
+{
+    cl_device_id device = gpu ? gpu_device : cpu_device;
     cl_int status;
     std::ifstream source_file(std::string("..\\kernels\\") + program_file_name.c_str());
 
@@ -312,6 +351,13 @@ int SetupProgram(std::string program_file_name, cl_program* program_ptr)
 int SetupKernel(std::string kernel_file_name, std::string kernel_name,
                 cl_kernel* kernel_ptr)
 {
+    return SetupKernel(true, kernel_file_name, kernel_name, kernel_ptr);
+}
+
+int SetupKernel(bool gpu, std::string kernel_file_name, std::string kernel_name,
+                cl_kernel* kernel_ptr)
+{
+    cl_device_id device = gpu ? gpu_device : cpu_device;
     cl_int status;
     std::ifstream source_file(std::string("..\\kernels\\") + kernel_file_name.c_str());
 
@@ -343,15 +389,6 @@ int SetupKernel(std::string kernel_file_name, std::string kernel_name,
     return SUCCESS;
 }
 
-int SetupKernel(std::string kernel_name, cl_kernel* kernel_ptr)
-{
-    cl_int status;
-    *kernel_ptr = clCreateKernel(program, kernel_name.c_str(), &status);
-    CHECK_OPENCL_ERROR(status, "clCreateKernel");
-    
-    return SUCCESS;
-}
-
 int SetupKernel(cl_program program, std::string kernel_name, cl_kernel* kernel_ptr)
 {
     cl_int status;
@@ -375,7 +412,7 @@ int DisplayDeviceSVMCaps(cl_device_id device)
         return GENERAL_FAILURE;
     }
 
-    std::cout << std::endl << "SVM capabilities:" << std::endl;
+    std::cout << "SVM capabilities:" << std::endl;
 
     std::cout << "\tCL_DEVICE_SVM_COARSE_GRAIN_BUFFER: "
               << ((caps & CL_DEVICE_SVM_COARSE_GRAIN_BUFFER) != 0)
@@ -391,7 +428,7 @@ int DisplayDeviceSVMCaps(cl_device_id device)
         
     std::cout << "\tCL_DEVICE_SVM_ATOMICS:             "
               << ((caps & CL_DEVICE_SVM_ATOMICS) != 0)
-              << std::endl << std::endl;
+              << std::endl;
 
     return SUCCESS;
 }
@@ -400,7 +437,7 @@ int DisplayDeviceMemoryCaps(cl_device_id device)
 {
     cl_int status;
 
-    std::cout << std::endl << "Memory properties:" << std::endl;
+    std::cout << "Memory properties:" << std::endl;
 
     cl_ulong global_mem_size;
     status = clGetDeviceInfo(device, CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(cl_ulong),
@@ -442,8 +479,6 @@ int DisplayDeviceMemoryCaps(cl_device_id device)
         std::cout << "CL_READ_WRITE_CACHE" << std::endl;
     }
     
-    std::cout << std::endl;
-    
     return SUCCESS;
 }
 
@@ -451,7 +486,7 @@ int DisplayDeviceWorkRangeInfo(cl_device_id device)
 {
     cl_int status;
 
-    std::cout << std::endl << "Work dim properties:" << std::endl;
+    std::cout << "Work dim properties:" << std::endl;
 
     cl_uint num_compute_units;
     status = clGetDeviceInfo(device, CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(cl_uint),
@@ -466,8 +501,6 @@ int DisplayDeviceWorkRangeInfo(cl_device_id device)
     CHECK_OPENCL_ERROR(status, "clGetDeviceInfo(CL_DEVICE_MAX_WORK_GROUP_SIZE)");
     std::cout << "\tCL_DEVICE_MAX_WORK_GROUP_SIZE: " << max_workgroup_size
               << std::endl;
-
-    std::cout << std::endl;
 
     return SUCCESS;
 }
@@ -503,7 +536,7 @@ int PrintBufferContents_Uint32(cl_mem buf, uint32 size, std::string name,
     
     uint32* temp = (uint32*) malloc(size * sizeof(uint32));
 
-    status = clEnqueueReadBuffer(queue, buf, CL_TRUE, 0,
+    status = clEnqueueReadBuffer(gpu_queue, buf, CL_TRUE, 0,
                                  size * sizeof(uint32), temp,
                                  0, NULL, NULL);
     CHECK_OPENCL_ERROR(status, "clEnqueueReadBuffer");

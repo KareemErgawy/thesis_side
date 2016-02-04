@@ -25,12 +25,12 @@ int GPU_ApplyStencil(ConvWrapper* wrapper, cl_kernel kernel)
                                         NULL, &status);
     CHECK_OPENCL_ERROR(status, "clCreateBuffer");
         
-    status = clEnqueueWriteBuffer(queue, in_img_buf, CL_TRUE, 0,
+    status = clEnqueueWriteBuffer(gpu_queue, in_img_buf, CL_TRUE, 0,
                                   img_size*sizeof(real32),
                                   wrapper->in_img, 0, NULL, NULL);
     CHECK_OPENCL_ERROR(status, "clEnqueueWriteBuffer");
 
-    status = clEnqueueWriteBuffer(queue, msk_buf, CL_TRUE, 0,
+    status = clEnqueueWriteBuffer(gpu_queue, msk_buf, CL_TRUE, 0,
                                   msk_size*sizeof(real32),
                                   wrapper->msk, 0, NULL, NULL);
     CHECK_OPENCL_ERROR(status, "clEnqueueWriteBuffer");
@@ -71,12 +71,12 @@ int GPU_ApplyStencil(ConvWrapper* wrapper, cl_kernel kernel)
     local[1] = local_dim;
 
     cl_event evt;
-    status = clEnqueueNDRangeKernel(queue, kernel, 2, NULL,
+    status = clEnqueueNDRangeKernel(gpu_queue, kernel, 2, NULL,
                                     global,
                                     local, 0, NULL, &evt);
     CHECK_OPENCL_ERROR(status, "clEnqueueNDRangeKernel");
 
-    status = clEnqueueReadBuffer(queue, out_img_buf, CL_TRUE, 0,
+    status = clEnqueueReadBuffer(gpu_queue, out_img_buf, CL_TRUE, 0,
                                  img_size*sizeof(real32), wrapper->out_img,
                                  0, NULL, NULL);
     CHECK_OPENCL_ERROR(status, "clEnqueueReadBuffer");                               
